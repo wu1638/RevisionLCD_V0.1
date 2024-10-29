@@ -2,7 +2,7 @@
  * @Description:
  * @Author: xiao
  * @Date: 2024-05-06 13:38:52
- * @LastEditTime: 2024-07-08 14:14:20
+ * @LastEditTime: 2024-10-29 14:02:19
  * @LastEditors: xiao
  */
 #include "Manager.h"
@@ -13,7 +13,10 @@
 #define ReadBaotou2 0xDD // 协议2包头0
 #define ReadBaotou3 0x03 // 协议2包头1
 // 协议3包头-------------------------
-#define ID 0x01					// 站号
+#define ID1 0x01					// 站号1
+#define ID2 0x02					// 站号2
+#define ID3 0x03					// 站号3
+#define ID4 0x04					// 站号4
 #define Function_code 0x03		// 功能码
 #define Register_address 0x0300 // 寄存器地址
 #define Register_Len 0x002A		// 寄存器长度
@@ -37,7 +40,7 @@ void Manager_Usart_Mainloop(void);
 void Deal_SelectDispose(void);
 void Pack_DealSendData1_Format(void);
 void Pack_DealSendData2_Format(void);
-void Pack_DealSendData3_Format(void);
+void Pack_DealSendData3_Format(uint8_t id);
 void Pack_DealGetData1_Format(void);
 void Pack_DealGetData2_Format(void);
 void Pack_DealGetData3_Format(void);
@@ -57,12 +60,10 @@ void Manager_Usart_Mainloop(void)
 {
 	Pack_DealSendData1_Format();
 	Pack_DealSendData2_Format();
-	Pack_DealSendData3_Format();
 	Deal_SelectDispose();
 	// 定时发送
 	if (SendFag)
 	{
-
 		if (Deal_TriggerMode1)
 		{
 			BSP_UART_SendData(eUART_RS232_com, DealSendData1, Deal_Len1);
@@ -75,13 +76,28 @@ void Manager_Usart_Mainloop(void)
 		}
 		else if (Deal_TriggerMode3)
 		{
+			if (DealGetData3[0] == ID1)
+			{
+				Pack_DealSendData3_Format(ID1);
+			}
+			else if (DealGetData3[0] == ID2)
+			{
+				Pack_DealSendData3_Format(ID2);
+			}
+			else if (DealGetData3[0] == ID3)
+			{
+				Pack_DealSendData3_Format(ID3);
+			}
+			else if (DealGetData3[0] == ID4)
+			{
+				Pack_DealSendData3_Format(ID4);
+			}
 			BSP_UART_SendData(eUART_RS232_com, DealSendData3, Deal_Len3);
 			BSP_UART_SendData(eUART_RS485_com, DealSendData3, 8);
 		}
 		else
 		{
-			/*轮询检测*/
-			if (PollCount == 1)
+			if(PollCount == 1)
 			{
 				BSP_UART_SendData(eUART_RS485_com, DealSendData1, Deal_Len1);
 			}
@@ -91,6 +107,22 @@ void Manager_Usart_Mainloop(void)
 			}
 			else if (PollCount == 3)
 			{
+				Pack_DealSendData3_Format(ID1);
+				BSP_UART_SendData(eUART_RS485_com, DealSendData3, 8);
+			}
+			else if(PollCount == 4)
+			{
+				Pack_DealSendData3_Format(ID2);
+				BSP_UART_SendData(eUART_RS485_com, DealSendData3, 8);
+			}
+			else if(PollCount == 5)
+			{
+				Pack_DealSendData3_Format(ID3);
+				BSP_UART_SendData(eUART_RS485_com, DealSendData3, 8);
+			}
+			else if(PollCount == 6)
+			{
+				Pack_DealSendData3_Format(ID4);
 				BSP_UART_SendData(eUART_RS485_com, DealSendData3, 8);
 				PollCount = FALSE;
 			}
@@ -128,12 +160,12 @@ void Pack_DealSendData2_Format(void)
 	DealSendData2[6] = 0x77;
 }
 /*协议3发送数据打包*/
-void Pack_DealSendData3_Format(void)
+void Pack_DealSendData3_Format(uint8_t id)
 {
 	/*03功能码*/
 	uint16_t usCRC16;
 
-	DealSendData3[0] = ID;
+	DealSendData3[0] = id;
 	DealSendData3[1] = Function_code;
 	DealSendData3[2] = (uint8_t)(Register_address >> 8);
 	DealSendData3[3] = (uint8_t)(Register_address & 0xff);
@@ -163,7 +195,8 @@ void Deal_SelectDispose(void)
 		Pack_DealGetData2_Format();
 		Deal_TriggerMode2 = TRUE;
 	}
-	else if (RealData[0] == ID && RealData[1] == Function_code && RealData[2] == 2 * Register_Len)
+	//else if (RealData[0] == ID1 && RealData[1] == Function_code && RealData[2] == 2 * Register_Len)
+	else if (RealData[1] == Function_code && RealData[2] == 2 * Register_Len)
 	{
 		memcpy(DealGetData3, RealData, Deal_Len3);
 		Pack_DealGetData3_Format();
@@ -230,7 +263,8 @@ void Pack_DealGetData3_Format(void)
 	usCRC16_L = (uint8_t)(usCRC16 >> 8);
 
 	// 接收数据验证处理
-	if (DealGetData3[0] == ID && DealGetData3[1] == Function_code && DealGetData3[2] == 2 * Register_Len)
+	//if (DealGetData3[0] == ID1 && DealGetData3[1] == Function_code && DealGetData3[2] == 2 * Register_Len)
+	if (DealGetData3[1] == Function_code && DealGetData3[2] == 2 * Register_Len)
 	{
 		if (DealGetData3[87] == usCRC16_H && DealGetData3[88] == usCRC16_L)
 		{

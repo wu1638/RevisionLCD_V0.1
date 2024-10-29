@@ -65,7 +65,7 @@ void Display_Frame(void);
 // 协议1
 void Deal_Battery_Power_Show_1(void);
 void Circulation_ErrorFlickerMode_1(uint8_t Num, uint8_t Mode);
-void Circulation_Marquee_1(uint8_t Indata, uint8_t ErrorSat, unsigned long Inputpower, unsigned long Outputpower);
+void Circulation_Marquee_1(uint8_t Indata, uint8_t PowerSta,uint8_t ErrorSat, unsigned long Inputpower, unsigned long Outputpower);
 void Discharge_Marquee_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSta, unsigned long Outputpower, uint8_t SteadySta);
 void DisSta_Conrtol_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSat, uint8_t Num, uint8_t PowerNum, uint8_t SteadySta);
 void MarBrControl_1(unsigned long Electric, uint8_t FickerSta, uint8_t Num, uint8_t PowerNum, uint8_t AppData, uint8_t AppData1, uint8_t mode);
@@ -223,7 +223,7 @@ void Charge_Dispose(uint16_t ErrorSta, unsigned long InputPower, unsigned long O
     /*充电跑马灯*/
     if (Deal_Num == 1)
     {
-        Circulation_Marquee_1(Count, ErrorSta, InputPower, OutputPower);
+        Circulation_Marquee_1(Count, Deal_Buf1.Trigger_OrderSta, ErrorSta, InputPower, OutputPower);
     }
     else if (Deal_Num == 2)
     {
@@ -549,7 +549,7 @@ void Init_Interface(void)
 
 /*---------------------------------------------------------------------------------协议1-----------------------------------------------------------------------------*/
 /*协议1充电循环跑马灯*/
-void Circulation_Marquee_1(uint8_t Indata, uint8_t ErrorSat, unsigned long Inputpower, unsigned long Outputpower)
+void Circulation_Marquee_1(uint8_t Indata, uint8_t PowerSta,uint8_t ErrorSat, unsigned long Inputpower, unsigned long Outputpower)
 {
     int in_thousandplace = Inputpower / 1000 % 10;
     int Out_thousandplace = Outputpower / 1000 % 10;
@@ -571,8 +571,23 @@ void Circulation_Marquee_1(uint8_t Indata, uint8_t ErrorSat, unsigned long Input
     {
         mode = 3;
     }
+    /*PV过载显示*/
+    if (Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) 
+    && !Read_WordManage(ErrorSat, 2))
+    {
+        mode = 4;
+    }
+    
+    /*---------------------------------功能触发显示-----------------------------------------------------*/
+    if (Read_WordManage(PowerSta, 2) && !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) 
+    && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
+    {
+        mode = 5;
+    }
+    
     /*无故障状态*/
-    if (!Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
+    if (!Read_WordManage(PowerSta, 2) && !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) 
+    && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
     {
         mode = 0;
     }
@@ -656,27 +671,22 @@ void Circulation_Marquee_1(uint8_t Indata, uint8_t ErrorSat, unsigned long Input
     {
         Circulation_ErrorFlickerMode_1(Indata, mode);
         HT1621_WriteData8Bit(MAE_TR, 0x00);
-        HT1621_WriteData8Bit(POWER_TR, Marqueedata[4]);
     }
     else if (Indata == 17)
     {
         Circulation_ErrorFlickerMode_1(Indata, mode);
-        HT1621_WriteData8Bit(POWER_TR, Marqueedata[3]);
     }
     else if (Indata == 18)
     {
         Circulation_ErrorFlickerMode_1(Indata, mode);
-        HT1621_WriteData8Bit(POWER_TR, Marqueedata[2]);
     }
     else if (Indata == 19)
     {
         Circulation_ErrorFlickerMode_1(Indata, mode);
-        HT1621_WriteData8Bit(POWER_TR, Marqueedata[1]);
     }
     else if (Indata == 20)
     {
         Circulation_ErrorFlickerMode_1(Indata, mode);
-        HT1621_WriteData8Bit(POWER_TR, 0x00);
         HT1621_WriteData8Bit(DIG1, Marqueedata[7] + numdata[Out_thousandplace]);
     }
     else if (Indata == 21)
@@ -777,6 +787,98 @@ void Circulation_ErrorFlickerMode_1(uint8_t Num, uint8_t Mode)
         else
         {
             HT1621_WriteData8Bit(Ero_TR, Marqueedata[0]);
+        }
+    }
+    else if (Num == 16)
+    {
+        if (Mode == 4)
+        {
+            if (ErrorFlickerFlag)
+            {
+                HT1621_WriteData8Bit(POWER_TR, Marqueedata[4] + Stadata_T[1]);
+                ErrorFlickerFlag = FALSE;
+            }
+            else
+            {
+                HT1621_WriteData8Bit(POWER_TR, Marqueedata[4] + Stadata_T[0] + Stadata_T[1]);
+            }
+        }
+        else if (Mode == 5)
+        {
+            HT1621_WriteData8Bit(POWER_TR, Marqueedata[4] + Stadata_T[1]);
+        }
+        else
+        {
+            HT1621_WriteData8Bit(POWER_TR, Marqueedata[4]);
+        }  
+    }
+     else if (Num == 17)
+    {
+        if (Mode == 4)
+        {
+             if (ErrorFlickerFlag)
+            {
+                HT1621_WriteData8Bit(POWER_TR, Marqueedata[3] + Stadata_T[1]);
+                ErrorFlickerFlag = FALSE;
+            }
+            else
+            {
+                HT1621_WriteData8Bit(POWER_TR, Marqueedata[3] + Stadata_T[0] + Stadata_T[1]);
+            }
+        }
+        else if (Mode == 5)
+        {
+            HT1621_WriteData8Bit(POWER_TR, Marqueedata[3] + Stadata_T[1]);
+        }
+        else
+        {
+            HT1621_WriteData8Bit(POWER_TR, Marqueedata[3]);
+        }
+    }
+     else if (Num == 18)
+    {
+         if (Mode == 4)
+        {
+            if (ErrorFlickerFlag)
+            {
+                HT1621_WriteData8Bit(POWER_TR, Marqueedata[2] + Stadata_T[1]);
+                ErrorFlickerFlag = FALSE;
+            }
+            else
+            {
+                HT1621_WriteData8Bit(POWER_TR, Marqueedata[2] + Stadata_T[0] + Stadata_T[1]);
+            }
+        }
+        else if (Mode == 5)
+        {
+            HT1621_WriteData8Bit(POWER_TR, Marqueedata[2] + Stadata_T[1]);
+        }
+        else
+        {
+            HT1621_WriteData8Bit(POWER_TR, Marqueedata[2]);
+        }
+    }
+     else if (Num == 19)
+    {
+         if (Mode == 4)
+        {
+            if (ErrorFlickerFlag)
+            {
+                HT1621_WriteData8Bit(POWER_TR, Marqueedata[1] + Stadata_T[1]);
+                ErrorFlickerFlag = FALSE;
+            }
+            else
+            {
+                HT1621_WriteData8Bit(POWER_TR, Marqueedata[1] + Stadata_T[0] + Stadata_T[1]);
+            }
+        }
+        else if (Mode == 5)
+        {
+            HT1621_WriteData8Bit(POWER_TR, Marqueedata[1] + Stadata_T[1]);
+        }
+        else
+        {
+            HT1621_WriteData8Bit(POWER_TR, Marqueedata[1]);
         }
     }
     else if (Num == 26)
@@ -1002,6 +1104,7 @@ void Circulation_ErrorFlickerMode_1(uint8_t Num, uint8_t Mode)
             if (ErrorFlickerFlag)
             {
                 HT1621_WriteData8Bit(Ero_TR, 0x00);
+                HT1621_WriteData8Bit(POWER_TR, 0x00);
                 ErrorFlickerFlag = FALSE;
             }
             else
@@ -1014,6 +1117,7 @@ void Circulation_ErrorFlickerMode_1(uint8_t Num, uint8_t Mode)
             if (ErrorFlickerFlag)
             {
                 HT1621_WriteData8Bit(Ero_TR, 0x00);
+                HT1621_WriteData8Bit(POWER_TR, 0x00);
                 ErrorFlickerFlag = FALSE;
             }
             else
@@ -1026,6 +1130,7 @@ void Circulation_ErrorFlickerMode_1(uint8_t Num, uint8_t Mode)
             if (ErrorFlickerFlag)
             {
                 HT1621_WriteData8Bit(Ero_TR, 0x00);
+                HT1621_WriteData8Bit(POWER_TR, 0x00);
                 ErrorFlickerFlag = FALSE;
             }
             else
@@ -1033,8 +1138,28 @@ void Circulation_ErrorFlickerMode_1(uint8_t Num, uint8_t Mode)
                 HT1621_WriteData8Bit(Ero_TR, Numdata_T[0] + Numdata_T[1]);
             }
         }
+        else if (Mode == 4)
+        {
+            if (ErrorFlickerFlag)
+            {
+                HT1621_WriteData8Bit(Ero_TR, 0x00);
+                HT1621_WriteData8Bit(POWER_TR,  Stadata_T[1]);
+                ErrorFlickerFlag = FALSE;
+            }
+            else
+            {
+                HT1621_WriteData8Bit(POWER_TR, Stadata_T[0] + Stadata_T[1]);
+            }
+        }
+         else if (Mode == 5)
+        {
+            HT1621_WriteData8Bit(Ero_TR, 0x00);
+            HT1621_WriteData8Bit(POWER_TR, Stadata_T[1]);
+        }
         else
         {
+
+            HT1621_WriteData8Bit(POWER_TR, 0x00);
             HT1621_WriteData8Bit(Ero_TR, 0x00);
         }
     }
@@ -1599,7 +1724,7 @@ void DisSta_Conrtol_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSat
         /* 无状态、无故障状态 */
         if (SteadySta)
         {
-            MarBrControl_1(Electric, TRUE, Num, PowerNum, 0, 0, 0);
+            MarBrControl_1(Electric, TRUE, Num, PowerNum, 0, 0, 10);
         }
         else
         {
@@ -1625,7 +1750,7 @@ void MarBrControl_1(unsigned long Electric, uint8_t FickerSta, uint8_t Num, uint
                 HT1621_WriteData8Bit(Ero_TR, MarBright[0] + AppData - MarConLamp[Num]); // 对应R30-26灯亮
             }
         }
-        else if (Electric > 99)
+        else if (mode == 10 && Electric >= 97 && Electric < 99)
         {
             HT1621_WriteData8Bit(Ero_TR, MarBright[0]); // 对应R30灯亮(休眠)
         }
@@ -2928,7 +3053,7 @@ void DisSta_Conrtol_2(unsigned long Electric, uint16_t ErrorSat, uint8_t Num, ui
         /* 无状态、无故障状态 */
         if (SteadySta)
         {
-            MarBrControl_2(Electric, TRUE, Num, PowerNum, 0, 0, 0);
+            MarBrControl_2(Electric, TRUE, Num, PowerNum, 0, 0, 10);
         }
         else
         {
@@ -2954,13 +3079,14 @@ void MarBrControl_2(unsigned long Electric, uint8_t FickerSta, uint8_t Num, uint
                 HT1621_WriteData8Bit(Ero_TR, MarBright[0] + AppData - MarConLamp[Num]); // 对应R30-26灯亮
             }
         }
-        else if (Electric > 99)
+        else if (mode == 10 && Electric >= 97 && Electric < 99)
         {
             HT1621_WriteData8Bit(Ero_TR, MarBright[0]); // 对应R30灯亮(无状态休眠)
         }
         else
         {
             HT1621_WriteData8Bit(Ero_TR, MarBright[0] - MarConLamp[Num]); // 对应R30-26灯亮
+           
         }
     }
     else
@@ -3711,7 +3837,7 @@ void DisSta_Conrtol_3(unsigned long Electric, uint16_t ErrorSat, uint8_t Num, ui
         /* 无状态、无故障状态 */
         if (SteadySta)
         {
-            MarBrControl_2(Electric, TRUE, Num, PowerNum, 0, 0, 0);
+            MarBrControl_2(Electric, TRUE, Num, PowerNum, 0, 0, 10);
         }
         else
         {

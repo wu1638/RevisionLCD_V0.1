@@ -47,7 +47,7 @@ I (..\Peripheral\Timer\SuperTimer.h)(0x664C5E3F)
 I (..\Peripheral\LCD\board_ht1621.h)(0x66433F3D)
 I (..\Peripheral\IWDG\bsp_IWDG.h)(0x6348D963)
 I (..\Peripheral\CRC16\crc.h)(0x663B21A3)
-I (..\Application\Manager\Variable_Define.h)(0x668791B8)
+I (..\Application\Manager\Variable_Define.h)(0x6694F23B)
 F (../Core/Src/stm32g0xx_it.c)(0x66432C78)(--c99 -c --cpu Cortex-M0+ -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\Application\Manager -I ..\Peripheral\GPIO -I ..\Peripheral\USART -I ..\Peripheral\Timer -I ..\Peripheral\LCD -I ..\Peripheral\CRC16 -I ..\Peripheral\IWDG-I.\RTE\_LCD_ControlV0.1-ID:\Users\admin\AppData\Local\Arm\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include-ID:\Users\admin\AppData\Local\Arm\Packs\Keil\STM32G0xx_DFP\1.4.0\Drivers\CMSIS\Device\ST\STM32G0xx\Include-D__UVISION_VERSION="533" -D_RTE_ -DSTM32G031xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G031xx-o .\lcd_controlv1.1\stm32g0xx_it.o --omf_browse .\lcd_controlv1.1\stm32g0xx_it.crf --depend .\lcd_controlv1.1\stm32g0xx_it.d)
 I (../Core/Inc/main.h)(0x6643230C)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal.h)(0x6486DA9A)
@@ -799,7 +799,7 @@ I (..\Peripheral\Timer\SuperTimer.h)(0x664C5E3F)
 I (..\Peripheral\LCD\board_ht1621.h)(0x66433F3D)
 I (..\Peripheral\IWDG\bsp_IWDG.h)(0x6348D963)
 I (..\Peripheral\CRC16\crc.h)(0x663B21A3)
-I (..\Application\Manager\Variable_Define.h)(0x668791B8)
+I (..\Application\Manager\Variable_Define.h)(0x6694F23B)
 F (..\Application\Manager\Manager.h)(0x664C6AAE)()
 F (..\Application\Manager\Manager_GPIO.c)(0x664C6B43)(--c99 -c --cpu Cortex-M0+ -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\Application\Manager -I ..\Peripheral\GPIO -I ..\Peripheral\USART -I ..\Peripheral\Timer -I ..\Peripheral\LCD -I ..\Peripheral\CRC16 -I ..\Peripheral\IWDG-I.\RTE\_LCD_ControlV0.1-ID:\Users\admin\AppData\Local\Arm\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include-ID:\Users\admin\AppData\Local\Arm\Packs\Keil\STM32G0xx_DFP\1.4.0\Drivers\CMSIS\Device\ST\STM32G0xx\Include-D__UVISION_VERSION="533" -D_RTE_ -DSTM32G031xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G031xx-o .\lcd_controlv1.1\manager_gpio.o --omf_browse .\lcd_controlv1.1\manager_gpio.crf --depend .\lcd_controlv1.1\manager_gpio.d)
 I (..\Application\Manager\Manager.h)(0x664C6AAE)
@@ -847,8 +847,8 @@ I (..\Peripheral\Timer\SuperTimer.h)(0x664C5E3F)
 I (..\Peripheral\LCD\board_ht1621.h)(0x66433F3D)
 I (..\Peripheral\IWDG\bsp_IWDG.h)(0x6348D963)
 I (..\Peripheral\CRC16\crc.h)(0x663B21A3)
-I (..\Application\Manager\Variable_Define.h)(0x668791B8)
-F (..\Application\Manager\Manager_Usart.c)(0x668DF992)(--c99 -c --cpu Cortex-M0+ -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\Application\Manager -I ..\Peripheral\GPIO -I ..\Peripheral\USART -I ..\Peripheral\Timer -I ..\Peripheral\LCD -I ..\Peripheral\CRC16 -I ..\Peripheral\IWDG-I.\RTE\_LCD_ControlV0.1-ID:\Users\admin\AppData\Local\Arm\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include-ID:\Users\admin\AppData\Local\Arm\Packs\Keil\STM32G0xx_DFP\1.4.0\Drivers\CMSIS\Device\ST\STM32G0xx\Include-D__UVISION_VERSION="533" -D_RTE_ -DSTM32G031xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G031xx-o .\lcd_controlv1.1\manager_usart.o --omf_browse .\lcd_controlv1.1\manager_usart.crf --depend .\lcd_controlv1.1\manager_usart.d)
+I (..\Application\Manager\Variable_Define.h)(0x6694F23B)
+F (..\Application\Manager\Manager_Usart.c)(0x6720438F)(--c99 -c --cpu Cortex-M0+ -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\Application\Manager -I ..\Peripheral\GPIO -I ..\Peripheral\USART -I ..\Peripheral\Timer -I ..\Peripheral\LCD -I ..\Peripheral\CRC16 -I ..\Peripheral\IWDG-I.\RTE\_LCD_ControlV0.1-ID:\Users\admin\AppData\Local\Arm\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include-ID:\Users\admin\AppData\Local\Arm\Packs\Keil\STM32G0xx_DFP\1.4.0\Drivers\CMSIS\Device\ST\STM32G0xx\Include-D__UVISION_VERSION="533" -D_RTE_ -DSTM32G031xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G031xx-o .\lcd_controlv1.1\manager_usart.o --omf_browse .\lcd_controlv1.1\manager_usart.crf --depend .\lcd_controlv1.1\manager_usart.d)
 I (..\Application\Manager\Manager.h)(0x664C6AAE)
 I (D:\Keil_v5\ARM\ARMCC\include\string.h)(0x5E8E2EB2)
 I (D:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x5E8E2EB2)
@@ -894,7 +894,7 @@ I (..\Peripheral\Timer\SuperTimer.h)(0x664C5E3F)
 I (..\Peripheral\LCD\board_ht1621.h)(0x66433F3D)
 I (..\Peripheral\IWDG\bsp_IWDG.h)(0x6348D963)
 I (..\Peripheral\CRC16\crc.h)(0x663B21A3)
-I (..\Application\Manager\Variable_Define.h)(0x668791B8)
+I (..\Application\Manager\Variable_Define.h)(0x6694F23B)
 F (..\Application\Manager\Manager_Timer.c)(0x6687A918)(--c99 -c --cpu Cortex-M0+ -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\Application\Manager -I ..\Peripheral\GPIO -I ..\Peripheral\USART -I ..\Peripheral\Timer -I ..\Peripheral\LCD -I ..\Peripheral\CRC16 -I ..\Peripheral\IWDG-I.\RTE\_LCD_ControlV0.1-ID:\Users\admin\AppData\Local\Arm\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include-ID:\Users\admin\AppData\Local\Arm\Packs\Keil\STM32G0xx_DFP\1.4.0\Drivers\CMSIS\Device\ST\STM32G0xx\Include-D__UVISION_VERSION="533" -D_RTE_ -DSTM32G031xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G031xx-o .\lcd_controlv1.1\manager_timer.o --omf_browse .\lcd_controlv1.1\manager_timer.crf --depend .\lcd_controlv1.1\manager_timer.d)
 I (..\Application\Manager\Manager.h)(0x664C6AAE)
 I (D:\Keil_v5\ARM\ARMCC\include\string.h)(0x5E8E2EB2)
@@ -941,8 +941,8 @@ I (..\Peripheral\Timer\SuperTimer.h)(0x664C5E3F)
 I (..\Peripheral\LCD\board_ht1621.h)(0x66433F3D)
 I (..\Peripheral\IWDG\bsp_IWDG.h)(0x6348D963)
 I (..\Peripheral\CRC16\crc.h)(0x663B21A3)
-I (..\Application\Manager\Variable_Define.h)(0x668791B8)
-F (..\Application\Manager\Mangager_LCD.c)(0x668E25F4)(--c99 -c --cpu Cortex-M0+ -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\Application\Manager -I ..\Peripheral\GPIO -I ..\Peripheral\USART -I ..\Peripheral\Timer -I ..\Peripheral\LCD -I ..\Peripheral\CRC16 -I ..\Peripheral\IWDG-I.\RTE\_LCD_ControlV0.1-ID:\Users\admin\AppData\Local\Arm\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include-ID:\Users\admin\AppData\Local\Arm\Packs\Keil\STM32G0xx_DFP\1.4.0\Drivers\CMSIS\Device\ST\STM32G0xx\Include-D__UVISION_VERSION="533" -D_RTE_ -DSTM32G031xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G031xx-o .\lcd_controlv1.1\mangager_lcd.o --omf_browse .\lcd_controlv1.1\mangager_lcd.crf --depend .\lcd_controlv1.1\mangager_lcd.d)
+I (..\Application\Manager\Variable_Define.h)(0x6694F23B)
+F (..\Application\Manager\Mangager_LCD.c)(0x66A07066)(--c99 -c --cpu Cortex-M0+ -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\Application\Manager -I ..\Peripheral\GPIO -I ..\Peripheral\USART -I ..\Peripheral\Timer -I ..\Peripheral\LCD -I ..\Peripheral\CRC16 -I ..\Peripheral\IWDG-I.\RTE\_LCD_ControlV0.1-ID:\Users\admin\AppData\Local\Arm\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include-ID:\Users\admin\AppData\Local\Arm\Packs\Keil\STM32G0xx_DFP\1.4.0\Drivers\CMSIS\Device\ST\STM32G0xx\Include-D__UVISION_VERSION="533" -D_RTE_ -DSTM32G031xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G031xx-o .\lcd_controlv1.1\mangager_lcd.o --omf_browse .\lcd_controlv1.1\mangager_lcd.crf --depend .\lcd_controlv1.1\mangager_lcd.d)
 I (..\Application\Manager\Manager.h)(0x664C6AAE)
 I (D:\Keil_v5\ARM\ARMCC\include\string.h)(0x5E8E2EB2)
 I (D:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x5E8E2EB2)
@@ -988,7 +988,7 @@ I (..\Peripheral\Timer\SuperTimer.h)(0x664C5E3F)
 I (..\Peripheral\LCD\board_ht1621.h)(0x66433F3D)
 I (..\Peripheral\IWDG\bsp_IWDG.h)(0x6348D963)
 I (..\Peripheral\CRC16\crc.h)(0x663B21A3)
-I (..\Application\Manager\Variable_Define.h)(0x668791B8)
+I (..\Application\Manager\Variable_Define.h)(0x6694F23B)
 F (..\Application\Manager\Manager_Sharing.c)(0x66879178)(--c99 -c --cpu Cortex-M0+ -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\Application\Manager -I ..\Peripheral\GPIO -I ..\Peripheral\USART -I ..\Peripheral\Timer -I ..\Peripheral\LCD -I ..\Peripheral\CRC16 -I ..\Peripheral\IWDG-I.\RTE\_LCD_ControlV0.1-ID:\Users\admin\AppData\Local\Arm\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include-ID:\Users\admin\AppData\Local\Arm\Packs\Keil\STM32G0xx_DFP\1.4.0\Drivers\CMSIS\Device\ST\STM32G0xx\Include-D__UVISION_VERSION="533" -D_RTE_ -DSTM32G031xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G031xx-o .\lcd_controlv1.1\manager_sharing.o --omf_browse .\lcd_controlv1.1\manager_sharing.crf --depend .\lcd_controlv1.1\manager_sharing.d)
 I (..\Application\Manager\Manager.h)(0x664C6AAE)
 I (D:\Keil_v5\ARM\ARMCC\include\string.h)(0x5E8E2EB2)
@@ -1035,9 +1035,9 @@ I (..\Peripheral\Timer\SuperTimer.h)(0x664C5E3F)
 I (..\Peripheral\LCD\board_ht1621.h)(0x66433F3D)
 I (..\Peripheral\IWDG\bsp_IWDG.h)(0x6348D963)
 I (..\Peripheral\CRC16\crc.h)(0x663B21A3)
-I (..\Application\Manager\Variable_Define.h)(0x668791B8)
+I (..\Application\Manager\Variable_Define.h)(0x6694F23B)
 I (D:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x5E8E2EB2)
-F (..\Application\Manager\Variable_Define.h)(0x668791B8)()
+F (..\Application\Manager\Variable_Define.h)(0x6694F23B)()
 F (..\Peripheral\GPIO\SuperGpio.c)(0x664315CF)(--c99 -c --cpu Cortex-M0+ -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\Application\Manager -I ..\Peripheral\GPIO -I ..\Peripheral\USART -I ..\Peripheral\Timer -I ..\Peripheral\LCD -I ..\Peripheral\CRC16 -I ..\Peripheral\IWDG-I.\RTE\_LCD_ControlV0.1-ID:\Users\admin\AppData\Local\Arm\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include-ID:\Users\admin\AppData\Local\Arm\Packs\Keil\STM32G0xx_DFP\1.4.0\Drivers\CMSIS\Device\ST\STM32G0xx\Include-D__UVISION_VERSION="533" -D_RTE_ -DSTM32G031xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G031xx-o .\lcd_controlv1.1\supergpio.o --omf_browse .\lcd_controlv1.1\supergpio.crf --depend .\lcd_controlv1.1\supergpio.d)
 I (..\Peripheral\GPIO\SuperGpio.h)(0x664315A2)
 I (../Core/Inc/main.h)(0x6643230C)
