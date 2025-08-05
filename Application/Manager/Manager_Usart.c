@@ -2,7 +2,7 @@
  * @Description:
  * @Author: xiao
  * @Date: 2024-05-06 13:38:52
- * @LastEditTime: 2024-10-29 14:02:19
+ * @LastEditTime: 2025-07-30 15:01:18
  * @LastEditors: xiao
  */
 #include "Manager.h"
@@ -30,6 +30,7 @@ uint8_t DealGetData3[Deal_Len3] = {0x00};
 uint8_t RealData[100] = {0x00};
 uint8_t Verify_ComDataHihg = 0, Verify_ComDatalow = 0;
 uint8_t Deal_TriggerMode1 = 0, Deal_TriggerMode2 = 0, Deal_TriggerMode3 = 0, PollCount = 0;
+uint8_t agr_Add1 = 0, agr_Add2 = 0, agr_Add3 = 0; // 协议站号
 
 /*外部引用函数*/
 extern uint16_t SendFag;
@@ -147,6 +148,7 @@ void Pack_DealSendData1_Format(void)
 	usCRC16 = usMBCRC16(DealSendData1, Deal_Len1 - 2);
 	DealSendData1[16] = (uint8_t)(usCRC16 & 0xFF);
 	DealSendData1[17] = (uint8_t)(usCRC16 >> 8);
+	agr_Add1 = DealSendData1[0]; // 协议1站号
 }
 /*协议2发送数据 打包*/
 void Pack_DealSendData2_Format(void)
@@ -158,6 +160,7 @@ void Pack_DealSendData2_Format(void)
 	DealSendData2[4] = 0xFF;
 	DealSendData2[5] = 0xFD;
 	DealSendData2[6] = 0x77;
+	agr_Add2 = DealSendData2[2]; // 协议2站号
 }
 /*协议3发送数据打包*/
 void Pack_DealSendData3_Format(uint8_t id)
@@ -174,6 +177,7 @@ void Pack_DealSendData3_Format(uint8_t id)
 	usCRC16 = usMBCRC16(DealSendData3, 6);
 	DealSendData3[6] = (uint8_t)(usCRC16 & 0xFF);
 	DealSendData3[7] = (uint8_t)(usCRC16 >> 8);
+	agr_Add3 = DealSendData3[0]; // 协议3站号
 }
 /*协议选择处理*/
 void Deal_SelectDispose(void)
@@ -195,7 +199,6 @@ void Deal_SelectDispose(void)
 		Pack_DealGetData2_Format();
 		Deal_TriggerMode2 = TRUE;
 	}
-	//else if (RealData[0] == ID1 && RealData[1] == Function_code && RealData[2] == 2 * Register_Len)
 	else if (RealData[1] == Function_code && RealData[2] == 2 * Register_Len)
 	{
 		memcpy(DealGetData3, RealData, Deal_Len3);
@@ -263,7 +266,6 @@ void Pack_DealGetData3_Format(void)
 	usCRC16_L = (uint8_t)(usCRC16 >> 8);
 
 	// 接收数据验证处理
-	//if (DealGetData3[0] == ID1 && DealGetData3[1] == Function_code && DealGetData3[2] == 2 * Register_Len)
 	if (DealGetData3[1] == Function_code && DealGetData3[2] == 2 * Register_Len)
 	{
 		if (DealGetData3[87] == usCRC16_H && DealGetData3[88] == usCRC16_L)

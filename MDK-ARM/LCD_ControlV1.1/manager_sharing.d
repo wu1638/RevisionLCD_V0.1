@@ -1,8 +1,8 @@
 .\lcd_controlv1.1\manager_sharing.o: ..\Application\Manager\Manager_Sharing.c
 .\lcd_controlv1.1\manager_sharing.o: ..\Application\Manager\Manager.h
-.\lcd_controlv1.1\manager_sharing.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
-.\lcd_controlv1.1\manager_sharing.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
-.\lcd_controlv1.1\manager_sharing.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\ctype.h
+.\lcd_controlv1.1\manager_sharing.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+.\lcd_controlv1.1\manager_sharing.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\lcd_controlv1.1\manager_sharing.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\ctype.h
 .\lcd_controlv1.1\manager_sharing.o: ..\Peripheral\GPIO\SuperGpio.h
 .\lcd_controlv1.1\manager_sharing.o: ../Core/Inc/main.h
 .\lcd_controlv1.1\manager_sharing.o: ../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal.h
@@ -12,7 +12,7 @@
 .\lcd_controlv1.1\manager_sharing.o: ../Drivers/CMSIS/Device/ST/STM32G0xx/Include/stm32g0xx.h
 .\lcd_controlv1.1\manager_sharing.o: ../Drivers/CMSIS/Device/ST/STM32G0xx/Include/stm32g031xx.h
 .\lcd_controlv1.1\manager_sharing.o: ../Drivers/CMSIS/Include/core_cm0plus.h
-.\lcd_controlv1.1\manager_sharing.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\lcd_controlv1.1\manager_sharing.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
 .\lcd_controlv1.1\manager_sharing.o: ../Drivers/CMSIS/Include/cmsis_version.h
 .\lcd_controlv1.1\manager_sharing.o: ../Drivers/CMSIS/Include/cmsis_compiler.h
 .\lcd_controlv1.1\manager_sharing.o: ../Drivers/CMSIS/Include/cmsis_armcc.h
@@ -20,7 +20,7 @@
 .\lcd_controlv1.1\manager_sharing.o: ../Drivers/CMSIS/Device/ST/STM32G0xx/Include/system_stm32g0xx.h
 .\lcd_controlv1.1\manager_sharing.o: ../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal.h
 .\lcd_controlv1.1\manager_sharing.o: ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy/stm32_hal_legacy.h
-.\lcd_controlv1.1\manager_sharing.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+.\lcd_controlv1.1\manager_sharing.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
 .\lcd_controlv1.1\manager_sharing.o: ../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_ll_rcc.h
 .\lcd_controlv1.1\manager_sharing.o: ../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_rcc_ex.h
 .\lcd_controlv1.1\manager_sharing.o: ../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_gpio.h
@@ -46,4 +46,4 @@
 .\lcd_controlv1.1\manager_sharing.o: ..\Peripheral\IWDG\bsp_IWDG.h
 .\lcd_controlv1.1\manager_sharing.o: ..\Peripheral\CRC16\crc.h
 .\lcd_controlv1.1\manager_sharing.o: ..\Application\Manager\Variable_Define.h
-.\lcd_controlv1.1\manager_sharing.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+.\lcd_controlv1.1\manager_sharing.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h

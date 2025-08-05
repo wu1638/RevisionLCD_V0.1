@@ -357,12 +357,11 @@ ARM Macro Assembler    Page 6
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M0+ --apcs=inter
 work --depend=.\lcd_controlv1.1\startup_stm32g031xx.d -o.\lcd_controlv1.1\start
-up_stm32g031xx.o -I.\RTE\_LCD_ControlV0.1 -ID:\Users\admin\AppData\Local\Arm\Pa
-cks\ARM\CMSIS\5.7.0\CMSIS\Core\Include -ID:\Users\admin\AppData\Local\Arm\Packs
-\Keil\STM32G0xx_DFP\1.4.0\Drivers\CMSIS\Device\ST\STM32G0xx\Include --predefine
-="__MICROLIB SETA 1" --predefine="__UVISION_VERSION SETA 533" --predefine="_RTE
-_ SETA 1" --predefine="STM32G031xx SETA 1" --predefine="_RTE_ SETA 1" --list=./
-lcd_controlv0.1/\startup_stm32g031xx.lst startup_stm32g031xx.s
+up_stm32g031xx.o -I.\RTE\_LCD_ControlV0.1 -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.4.0
+\CMSIS\Core\Include -IC:\Keil_v5\ARM\PACK\Keil\STM32G0xx_DFP\1.4.0\Drivers\CMSI
+S\Device\ST\STM32G0xx\Include --predefine="__MICROLIB SETA 1" --predefine="__UV
+ISION_VERSION SETA 526" --predefine="_RTE_ SETA 1" --predefine="STM32G031xx SET
+A 1" --list=./lcd_controlv0.1/\startup_stm32g031xx.lst startup_stm32g031xx.s
 
 
 

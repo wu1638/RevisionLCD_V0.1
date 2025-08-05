@@ -34,6 +34,10 @@
 #define HT1621_WR_CLK_ENABLE()      do{ __HAL_RCC_GPIOA_CLK_ENABLE(); }while(0)    // GPIO端口时钟
 #define HT1621_WR_PIN               GPIO_PIN_7             // 定义HT1621的WR管脚
 
+#define HT1621_CS2_PORT              GPIOB                   // GPIO端口
+#define HT1621_CS2_CLK_ENABLE()      do{ __HAL_RCC_GPIOB_CLK_ENABLE(); }while(0)    // GPIO端口时钟
+#define HT1621_CS2_PIN               GPIO_PIN_0             // 定义HT1621的CS管脚
+
 
 #define LCD_BACK_LIGHT_0()  				HAL_GPIO_WritePin(HT1621_BACK_LIGHT_PORT, HT1621_BACK_LIGHT_PIN, GPIO_PIN_RESET)
 #define LCD_BACK_LIGHT_1()  				HAL_GPIO_WritePin(HT1621_BACK_LIGHT_PORT, HT1621_BACK_LIGHT_PIN, GPIO_PIN_SET)
@@ -48,7 +52,10 @@
 
 												
 #define LCD_WR_0()  					      HAL_GPIO_WritePin(HT1621_WR_PORT, HT1621_WR_PIN, GPIO_PIN_RESET)
-#define LCD_WR_1()  					      HAL_GPIO_WritePin(HT1621_WR_PORT, HT1621_WR_PIN, GPIO_PIN_SET)											
+#define LCD_WR_1()  					      HAL_GPIO_WritePin(HT1621_WR_PORT, HT1621_WR_PIN, GPIO_PIN_SET)	
+
+#define LCD_CS2_0()  					      HAL_GPIO_WritePin(HT1621_CS2_PORT, HT1621_CS2_PIN, GPIO_PIN_RESET)
+#define LCD_CS2_1()  					      HAL_GPIO_WritePin(HT1621_CS2_PORT, HT1621_CS2_PIN, GPIO_PIN_SET)
 							
 
 #define COMMAND_CODE                0x80                    // 命令码
@@ -71,8 +78,12 @@
  * API FUNCTIONS
  */
 void HT1621_Init(void);
+void HT1621_Init2(void);
 void HT1621_WriteCommand(uint8_t cmd);
+void HT1621_WriteCommand2(uint8_t cmd);
 extern void HT1621_WriteData4Bit(uint8_t addr, uint8_t data);
 extern void HT1621_WriteData8Bit(uint8_t addr, uint8_t data);
+extern void HT1621_WriteData4Bit2(uint8_t addr, uint8_t data);
+extern void HT1621_WriteData8Bit2(uint8_t addr, uint8_t data);
 
 #endif /* _BOARD_HT1621_H_ */

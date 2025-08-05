@@ -8,7 +8,7 @@
 .\lcd_controlv1.1\bsp_iwdg.o: ../Drivers/CMSIS/Device/ST/STM32G0xx/Include/stm32g0xx.h
 .\lcd_controlv1.1\bsp_iwdg.o: ../Drivers/CMSIS/Device/ST/STM32G0xx/Include/stm32g031xx.h
 .\lcd_controlv1.1\bsp_iwdg.o: ../Drivers/CMSIS/Include/core_cm0plus.h
-.\lcd_controlv1.1\bsp_iwdg.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\lcd_controlv1.1\bsp_iwdg.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
 .\lcd_controlv1.1\bsp_iwdg.o: ../Drivers/CMSIS/Include/cmsis_version.h
 .\lcd_controlv1.1\bsp_iwdg.o: ../Drivers/CMSIS/Include/cmsis_compiler.h
 .\lcd_controlv1.1\bsp_iwdg.o: ../Drivers/CMSIS/Include/cmsis_armcc.h
@@ -16,7 +16,7 @@
 .\lcd_controlv1.1\bsp_iwdg.o: ../Drivers/CMSIS/Device/ST/STM32G0xx/Include/system_stm32g0xx.h
 .\lcd_controlv1.1\bsp_iwdg.o: ../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal.h
 .\lcd_controlv1.1\bsp_iwdg.o: ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy/stm32_hal_legacy.h
-.\lcd_controlv1.1\bsp_iwdg.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+.\lcd_controlv1.1\bsp_iwdg.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
 .\lcd_controlv1.1\bsp_iwdg.o: ../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_ll_rcc.h
 .\lcd_controlv1.1\bsp_iwdg.o: ../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_rcc_ex.h
 .\lcd_controlv1.1\bsp_iwdg.o: ../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_gpio.h

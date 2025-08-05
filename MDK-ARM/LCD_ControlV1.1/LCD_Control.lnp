@@ -35,7 +35,7 @@
 ".\lcd_controlv1.1\board_ht1621.o"
 ".\lcd_controlv1.1\bsp_iwdg.o"
 ".\lcd_controlv1.1\crc.o"
---library_type=microlib --strict --scatter ".\LCD_ControlV1.1\LCD_ControlV1.sct"
+--library_type=microlib --strict --scatter ".\LCD_ControlV1.1\LCD_Control.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
---list "./LCD_ControlV0.1/\LCD_ControlV1.map" -o .\LCD_ControlV1.1\LCD_ControlV1.1
+--list "./LCD_ControlV0.1/\LCD_Control.map" -o .\LCD_ControlV1.1\LCD_Control.axf
