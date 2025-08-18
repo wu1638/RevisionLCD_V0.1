@@ -2,7 +2,7 @@
  * @Description:
  * @Author: xiao
  * @Date: 2024-05-06 13:38:52
- * @LastEditTime: 2025-07-30 15:01:18
+ * @LastEditTime: 2025-08-11 09:11:32
  * @LastEditors: xiao
  */
 #include "Manager.h"
@@ -55,6 +55,7 @@ void Manager_Usart_Init(void)
 
 void Manager_Usart_Activate(void)
 {
+	
 }
 
 void Manager_Usart_Mainloop(void)
