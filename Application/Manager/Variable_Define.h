@@ -2,7 +2,7 @@
  * @Description:
  * @Author: xiao
  * @Date: 2022-10-15 14:01:01
- * @LastEditTime: 2024-07-05 10:08:16
+ * @LastEditTime: 2025-09-03 10:27:26
  * @LastEditors: xiao
  */
 #ifndef _VARABLE_DEFINE_H
@@ -132,5 +132,7 @@ extern uint8_t Read_WordManage(uint16_t data, uint8_t n);
 /*浮点互相转换十六进制*/
 extern float HextoFlot(uint16_t *Data);
 void FloattoHex(uint16_t *Data, float value);
+uint16_t Count_Bits(uint16_t Num);
+
 
 #endif

@@ -2,7 +2,7 @@
  * @Description:
  * @Author: xiao
  * @Date: 2024-05-06 13:38:52
- * @LastEditTime: 2025-08-11 09:11:32
+ * @LastEditTime: 2025-08-26 16:54:15
  * @LastEditors: xiao
  */
 #include "Manager.h"
@@ -178,7 +178,7 @@ void Pack_DealSendData3_Format(uint8_t id)
 	usCRC16 = usMBCRC16(DealSendData3, 6);
 	DealSendData3[6] = (uint8_t)(usCRC16 & 0xFF);
 	DealSendData3[7] = (uint8_t)(usCRC16 >> 8);
-	agr_Add3 = DealSendData3[0]; // 协议3站号
+	//agr_Add3 = DealSendData3[0]; // 协议3站号
 }
 /*协议选择处理*/
 void Deal_SelectDispose(void)

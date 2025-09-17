@@ -164,3 +164,16 @@ void FloattoHex(uint16_t *Data, float value)
         i++;
     }
 }
+/*故障个数处理*/
+uint16_t Count_Bits(uint16_t Num)
+{
+    uint16_t count = 0;
+    while (Num)
+    {
+        count += Num & 1;
+        Num >>= 1;
+    }
+    return count;
+}
+
+

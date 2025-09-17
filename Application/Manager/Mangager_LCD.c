@@ -43,21 +43,23 @@ uint8_t MarBright[] = {0x9f, 0xef, 0x7f, 0x0f};
 // 跑马灯单体控制                              4Bit/0x8f:R30 - R26全灭   8bit/0x0f：R25-22  12bit/0x0f:R19-16全灭  19Bit/0x7F:R15-9全灭  26Bit/0xef：R8-2全灭
 uint8_t MarConLamp[] = {0x80, 0x88, 0x8c, 0x8e, 0x8f, 0x01, 0x03, 0x07, 0x0f, 0x01, 0x03, 0x07, 0x0f, 0x40, 0x60, 0x70, 0x71, 0x73, 0x77, 0x7f, 0x80, 0xc0, 0xe0, 0xe8, 0xec, 0xee, 0xef, 0x10, 0x80, 0x80};
 /*符号显示T  "T1"、"T2"、"T3/T4"、"T9/T10/T11/T12/T13/T14/T18"、“T1/T2”*/
-uint8_t Numdata_T[] = {0x40, 0x20, 0x08, 0x80, 0x60}; 
+uint8_t Numdata_T[] = {0x40, 0x20, 0x08, 0x80, 0x60};
 /*状态显示T  "T5/T15"、"T6/T16"、"T7/T17"、"T8/T19"、"T16/T17/T18"*/
-uint8_t Stadata_T[5] = {0x10, 0x20, 0x40, 0x80, 0xe0};                                 
+uint8_t Stadata_T[5] = {0x10, 0x20, 0x40, 0x80, 0xe0};
 uint8_t numadd[] = {DIG0, DIG1, DIG2, DIG3, DIG4, DIG5, DIG6, DIG7, DIG8, DIG9, DIGA}; //"dig"char
 
 uint8_t disp_buff_data[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 uint8_t Display_Fag = 0, Fixed_Value = 0x90, RestartTime = 0;
 uint8_t Count = 0, Dis_InitFlag = 0, Char_InitFlag = 0, Await_InitFlag = 0, TriggerFlickFlag = 0;
 uint32_t Charge_Time = 0;
-uint16_t Show_InputPower = 0, Show_OutputPower = 0, Show_Voltage = 0, Judge_Electricity = 0, Use_ReportSta = 0,Use_ReportSta_H = 0,Dormancy_Electricity = 0, Use_RunSta = 0;
+uint16_t Show_InputPower = 0, Show_OutputPower = 0, Show_Voltage = 0, Judge_Electricity = 0,CalculatePower = 0,
+         Use_ReportSta = 0, Use_ReportSta_H = 0, Dormancy_Electricity = 0, Use_RunSta = 0, FaultNum_L = 0,
+         FaultNum_H = 0;
 
 /*外部引用变量------------------------------------------------------------------------*/
-extern uint16_t FlickerFlg, Cir_FlickerFlag;
+extern uint16_t FlickerFlg, Cir_FlickerFlag, PollFlag;
 extern uint16_t ErrorFlickerFlag;
-extern uint8_t Deal_TriggerMode1, Deal_TriggerMode2, Deal_TriggerMode3;
+extern uint8_t Deal_TriggerMode1, Deal_TriggerMode2, Deal_TriggerMode3, FaultCount, FaultFlickerFlag, FaultDiaTimeFlag;
 extern uint16_t DormancySta;
 extern uint8_t agr_Add1, agr_Add2, agr_Add3; // 协议站号
 /*私有函数原型------------------------------------------------------------------------*/
@@ -70,12 +72,12 @@ void Display_Frame(void);
 // 协议1
 void Deal_Battery_Power_Show_1(void);
 void Circulation_ErrorFlickerMode_1(uint8_t Num, uint8_t Mode);
-void Circulation_Marquee_1(uint8_t Indata, uint8_t PowerSta,uint8_t ErrorSat, unsigned long Inputpower, unsigned long Outputpower);
+void Circulation_Marquee_1(uint8_t Indata, uint8_t PowerSta, uint8_t ErrorSat, unsigned long Inputpower, unsigned long Outputpower);
 void Discharge_Marquee_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSta, unsigned long Outputpower, uint8_t SteadySta);
 void DisSta_Conrtol_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSat, uint8_t Num, uint8_t PowerNum, uint8_t SteadySta);
 void MarBrControl_1(unsigned long Electric, uint8_t FickerSta, uint8_t Num, uint8_t PowerNum, uint8_t AppData, uint8_t AppData1, uint8_t mode);
 // 协议2
-//void Deal_Battery_Power_Show_2(void);
+// void Deal_Battery_Power_Show_2(void);
 void Circulation_ErrorFlickerMode_2(uint8_t Num, uint8_t Mode);
 /*void Circulation_Marquee_2(uint8_t Indata, uint16_t ErrorSat, unsigned long Inputpower, unsigned long Outputpower);
 void Discharge_Marquee_2(unsigned long Electric, uint16_t ErrorSta, unsigned long Outputpower, uint8_t SteadySta);
@@ -256,7 +258,7 @@ void Charge_Dispose(uint16_t ErrorSta, unsigned long InputPower, unsigned long O
     }
     else if (Deal_Num == 2)
     {
-        //Circulation_Marquee_2(Count, ErrorSta, InputPower, OutputPower);
+        // Circulation_Marquee_2(Count, ErrorSta, InputPower, OutputPower);
     }
     else if (Deal_Num == 3)
     {
@@ -286,19 +288,23 @@ void Display_Frame(void)
         Use_ReportSta = (uint16_t)(Deal_Buf2.ReportSta[0] << 8 | Deal_Buf2.ReportSta[1]);         // 告警状态组码
 
         /*电量及功率显示*/
-        //Deal_Battery_Power_Show_2();
+        // Deal_Battery_Power_Show_2();
         /*ID显示*/
-        //ID_Code_Display(agr_Add2);
+        // ID_Code_Display(agr_Add2);
     }
     else if (Deal_TriggerMode3)
     {
         /*协议3模式*/
         Use_RunSta = Deal_Buf3.System_Sta;             // 系统状态
-        Show_Voltage = Deal_Buf3.Gather_Total_Voltage; // 总电压
+        Show_Voltage = Deal_Buf3.Load_Voltage; // 负载电压
         Show_Voltage = Show_Voltage / 10;
         Dormancy_Electricity = (Symbol_Compute - Deal_Buf3.Total_Electricity[1]); // 休眠电流
+        //CalculatePower = Show_Voltage * Dormancy_Electricity;                     // 计算实时功率
         Use_ReportSta = Deal_Buf3.Level_1_Protect_Sta[1];                         // 保护状态低字
-        Use_ReportSta_H = Deal_Buf3.Level_1_Protect_Sta[0];                         // 保护状态高字
+        Use_ReportSta_H = Deal_Buf3.Level_1_Protect_Sta[0];                       // 保护状态高字
+        agr_Add3 = (uint8_t)(Deal_Buf3.BMU_Quantity & 0xff);                      // BMU数量
+        FaultNum_L = Count_Bits(Use_ReportSta);                                   // 故障状态低个数
+        FaultNum_H = Count_Bits(Use_ReportSta_H);                                 // 故障状态高个数
 
         /*电量及功率显示*/
         Deal_Battery_Power_Show_3();
@@ -516,7 +522,8 @@ void Deal_Battery_Power_Show_3(void)
         Charge_Dispose(Use_ReportSta, Show_Voltage, 0, TRUE, 3);
     }
     /*唤醒状态*/
-    if ((Use_RunSta == 0x01 || Use_RunSta == 0x02 || Use_RunSta == 0x03) &&
+    if ((Use_RunSta == 0x01 || Use_ReportSta != FALSE || Use_ReportSta_H != FALSE ||
+        Use_RunSta == 0x02 || Use_RunSta == 0x03) &&
         (Dormancy_Electricity <= Min_Electricity1) && !DormancySta)
     {
         /*重新计时*/
@@ -538,17 +545,18 @@ void Deal_Battery_Power_Show_3(void)
         /*输出功率显示*/
         Output_Power(0, Deal_Buf3.SOC, 0, TRUE);
         /*放电模式*/
-        Discharge_Marquee_3(Deal_Buf3.SOC, Use_ReportSta, Show_Voltage, TRUE);
+        Discharge_Marquee_3(Deal_Buf3.SOC, Use_ReportSta, Show_Voltage, FALSE);
     }
-    /*3分钟进入休眠状态*/
-    if (DormancySta)
+    /*30分钟进入休眠状态*/
+    if (DormancySta && Use_RunSta == FALSE && Use_ReportSta == FALSE && Use_ReportSta_H == FALSE)
     {
         Init_Interface();
         /*关背光*/
         SuperGpio_WriteOutput(0, 0);
     }
     /*小于0.5A电流唤醒休眠*/
-    if (Dormancy_Electricity > 0 && (Dormancy_Electricity <= Min_Electricity1))
+    if (Dormancy_Electricity > 0 && (Dormancy_Electricity <= Min_Electricity1)&& Use_RunSta == FALSE
+    && Use_ReportSta == FALSE && Use_ReportSta_H == FALSE)
     {
         DormancySta = FALSE;
     }
@@ -584,14 +592,14 @@ void Init_Interface(void)
 {
     for (uint8_t i = 0; i < 152; i++)
     {
-        HT1621_WriteData8Bit(i, 0x00); // clear all display
+        HT1621_WriteData8Bit(i, 0x00);  // clear all display
         HT1621_WriteData8Bit2(i, 0x00); // clear all display
     }
 }
 
 /*---------------------------------------------------------------------------------协议1-----------------------------------------------------------------------------*/
 /*协议1充电循环跑马灯*/
-void Circulation_Marquee_1(uint8_t Indata, uint8_t PowerSta,uint8_t ErrorSat, unsigned long Inputpower, unsigned long Outputpower)
+void Circulation_Marquee_1(uint8_t Indata, uint8_t PowerSta, uint8_t ErrorSat, unsigned long Inputpower, unsigned long Outputpower)
 {
     int in_thousandplace = Inputpower / 1000 % 10;
     int Out_thousandplace = Outputpower / 1000 % 10;
@@ -605,15 +613,36 @@ void Circulation_Marquee_1(uint8_t Indata, uint8_t PowerSta,uint8_t ErrorSat, un
         //---------------------------------新版故障显示------------------------------------
         if (Read_WordManage(ErrorSat, 0))
         {
-            Error_Code_Display(55); // 欠压故障码
+            if (FaultFlickerFlag)
+            {
+                Error_Code_Display(55); // 欠压故障码
+            }
+            else
+            {
+                NoFault_Display(); // 无状态、无故障
+            }  
         }
         if (Read_WordManage(ErrorSat, 1))
         {
-            Error_Code_Display(56); // 过压故障码
+            if (FaultFlickerFlag)
+            {
+                Error_Code_Display(56); // 过压故障码
+            }
+            else
+            {
+                NoFault_Display(); // 无状态、无故障
+            }  
         }
         if (Read_WordManage(ErrorSat, 2))
         {
-            Error_Code_Display(57); // 过流故障码
+            if (FaultFlickerFlag)
+            {
+                Error_Code_Display(57); // 过流故障码
+            }
+            else
+            {
+                NoFault_Display(); // 无状态、无故障
+            }  
         }
     }
     /*电池过温显示*/
@@ -629,30 +658,27 @@ void Circulation_Marquee_1(uint8_t Indata, uint8_t PowerSta,uint8_t ErrorSat, un
         mode = 3;
     }
     /*PV过载显示*/
-    if (Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) 
-    && !Read_WordManage(ErrorSat, 2))
+    if (Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
     {
         mode = 4;
         //---------------------------------新版故障显示------------------------------------
         Error_Code_Display(59); // PV过载故障码
     }
-    
+
     /*---------------------------------功能触发显示-----------------------------------------------------*/
-    if (Read_WordManage(PowerSta, 2) && !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) 
-    && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
+    if (Read_WordManage(PowerSta, 2) && !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
     {
         mode = 5;
         //---------------------------------新版无故障显示------------------------------------
-        NoFault_Display();// 无状态、无故障
+        NoFault_Display(); // 无状态、无故障
     }
-    
+
     /*无故障状态*/
-    if (!Read_WordManage(PowerSta, 2) && !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) 
-    && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
+    if (!Read_WordManage(PowerSta, 2) && !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
     {
         mode = 0;
         //---------------------------------新版无故障显示------------------------------------
-        NoFault_Display();// 无状态、无故障
+        NoFault_Display(); // 无状态、无故障
     }
     /*----------------------------------------------跑马灯--------------------------------------------*/
     if (Indata == 1)
@@ -873,13 +899,13 @@ void Circulation_ErrorFlickerMode_1(uint8_t Num, uint8_t Mode)
         else
         {
             HT1621_WriteData8Bit(POWER_TR, Marqueedata[4]);
-        }  
+        }
     }
-     else if (Num == 17)
+    else if (Num == 17)
     {
         if (Mode == 4)
         {
-             if (ErrorFlickerFlag)
+            if (ErrorFlickerFlag)
             {
                 HT1621_WriteData8Bit(POWER_TR, Marqueedata[3] + Stadata_T[1]);
                 ErrorFlickerFlag = FALSE;
@@ -898,9 +924,9 @@ void Circulation_ErrorFlickerMode_1(uint8_t Num, uint8_t Mode)
             HT1621_WriteData8Bit(POWER_TR, Marqueedata[3]);
         }
     }
-     else if (Num == 18)
+    else if (Num == 18)
     {
-         if (Mode == 4)
+        if (Mode == 4)
         {
             if (ErrorFlickerFlag)
             {
@@ -921,9 +947,9 @@ void Circulation_ErrorFlickerMode_1(uint8_t Num, uint8_t Mode)
             HT1621_WriteData8Bit(POWER_TR, Marqueedata[2]);
         }
     }
-     else if (Num == 19)
+    else if (Num == 19)
     {
-         if (Mode == 4)
+        if (Mode == 4)
         {
             if (ErrorFlickerFlag)
             {
@@ -1206,7 +1232,7 @@ void Circulation_ErrorFlickerMode_1(uint8_t Num, uint8_t Mode)
             if (ErrorFlickerFlag)
             {
                 HT1621_WriteData8Bit(Ero_TR, 0x00);
-                HT1621_WriteData8Bit(POWER_TR,  Stadata_T[1]);
+                HT1621_WriteData8Bit(POWER_TR, Stadata_T[1]);
                 ErrorFlickerFlag = FALSE;
             }
             else
@@ -1214,7 +1240,7 @@ void Circulation_ErrorFlickerMode_1(uint8_t Num, uint8_t Mode)
                 HT1621_WriteData8Bit(POWER_TR, Stadata_T[0] + Stadata_T[1]);
             }
         }
-         else if (Mode == 5)
+        else if (Mode == 5)
         {
             HT1621_WriteData8Bit(Ero_TR, 0x00);
             HT1621_WriteData8Bit(POWER_TR, Stadata_T[1]);
@@ -1399,140 +1425,140 @@ void DisSta_Conrtol_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSat
         TriggerFlickFlag = FALSE;
     }
 
-    if (Read_WordManage(PowerSta, 2) && !Read_WordManage(PowerSta, 3) && !Read_WordManage(PowerSta, 4) && !Read_WordManage(PowerSta, 5) && 
-    !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) && 
-    !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
+    if (Read_WordManage(PowerSta, 2) && !Read_WordManage(PowerSta, 3) && !Read_WordManage(PowerSta, 4) && !Read_WordManage(PowerSta, 5) &&
+        !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) &&
+        !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
     {
         /*PV 显示*/
         MarBrControl_1(Electric, TriggerFlickFlag, Num, PowerNum, Stadata_T[1], 0, 3);
         //---------------------------------新版无故障显示------------------------------------
-        NoFault_Display();// 无状态、无故障
+        NoFault_Display(); // 无状态、无故障
     }
-    if (Read_WordManage(PowerSta, 3) && !Read_WordManage(PowerSta, 2) && !Read_WordManage(PowerSta, 4) && !Read_WordManage(PowerSta, 5) && 
-    !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) && 
-    !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
+    if (Read_WordManage(PowerSta, 3) && !Read_WordManage(PowerSta, 2) && !Read_WordManage(PowerSta, 4) && !Read_WordManage(PowerSta, 5) &&
+        !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) &&
+        !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
     {
         /*DC 显示*/
         MarBrControl_1(Electric, TriggerFlickFlag, Num, PowerNum, Stadata_T[2], 0, 3);
         //---------------------------------新版无故障显示------------------------------------
-        NoFault_Display();// 无状态、无故障
+        NoFault_Display(); // 无状态、无故障
     }
-    if (Read_WordManage(PowerSta, 4) && !Read_WordManage(PowerSta, 2) && !Read_WordManage(PowerSta, 3) && !Read_WordManage(PowerSta, 5) && 
-    !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) && 
-    !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
+    if (Read_WordManage(PowerSta, 4) && !Read_WordManage(PowerSta, 2) && !Read_WordManage(PowerSta, 3) && !Read_WordManage(PowerSta, 5) &&
+        !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) &&
+        !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
     {
         /*USB 显示*/
         MarBrControl_1(Electric, TriggerFlickFlag, Num, PowerNum, Numdata_T[3], 0, 4);
         //---------------------------------新版无故障显示------------------------------------
-        NoFault_Display();// 无状态、无故障
+        NoFault_Display(); // 无状态、无故障
     }
-    if (Read_WordManage(PowerSta, 5) && !Read_WordManage(PowerSta, 2) && !Read_WordManage(PowerSta, 3) && !Read_WordManage(PowerSta, 4) && 
-    !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) && 
-    !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
+    if (Read_WordManage(PowerSta, 5) && !Read_WordManage(PowerSta, 2) && !Read_WordManage(PowerSta, 3) && !Read_WordManage(PowerSta, 4) &&
+        !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) &&
+        !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
     {
         /*AC 显示*/
         MarBrControl_1(Electric, TriggerFlickFlag, Num, PowerNum, Stadata_T[3], 0, 3);
-       //---------------------------------新版无故障显示------------------------------------
-       NoFault_Display();// 无状态、无故障
+        //---------------------------------新版无故障显示------------------------------------
+        NoFault_Display(); // 无状态、无故障
     }
-    if (Read_WordManage(PowerSta, 2) && Read_WordManage(PowerSta, 3) && !Read_WordManage(PowerSta, 4) && !Read_WordManage(PowerSta, 5) && 
-    !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) && 
-    !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
+    if (Read_WordManage(PowerSta, 2) && Read_WordManage(PowerSta, 3) && !Read_WordManage(PowerSta, 4) && !Read_WordManage(PowerSta, 5) &&
+        !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) &&
+        !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
     {
         /*PV、DC显示*/
         MarBrControl_1(Electric, TriggerFlickFlag, Num, PowerNum, Stadata_T[1] + Stadata_T[2], 0, 3);
         //---------------------------------新版无故障显示------------------------------------
-        NoFault_Display();// 无状态、无故障
+        NoFault_Display(); // 无状态、无故障
     }
-    if (Read_WordManage(PowerSta, 2) && Read_WordManage(PowerSta, 4) && !Read_WordManage(PowerSta, 3) && !Read_WordManage(PowerSta, 5) && 
-    !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) && 
-    !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
+    if (Read_WordManage(PowerSta, 2) && Read_WordManage(PowerSta, 4) && !Read_WordManage(PowerSta, 3) && !Read_WordManage(PowerSta, 5) &&
+        !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) &&
+        !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
     {
         /*PV、USB显示*/
         MarBrControl_1(Electric, TriggerFlickFlag, Num, PowerNum, Stadata_T[1], Numdata_T[3], 8);
         //---------------------------------新版无故障显示------------------------------------
-        NoFault_Display();// 无状态、无故障
+        NoFault_Display(); // 无状态、无故障
     }
-    if (Read_WordManage(PowerSta, 2) && Read_WordManage(PowerSta, 5) && !Read_WordManage(PowerSta, 3) && !Read_WordManage(PowerSta, 4) && 
-    !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) && 
-    !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
+    if (Read_WordManage(PowerSta, 2) && Read_WordManage(PowerSta, 5) && !Read_WordManage(PowerSta, 3) && !Read_WordManage(PowerSta, 4) &&
+        !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) &&
+        !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
     {
         /*PV、AC显示*/
         MarBrControl_1(Electric, TriggerFlickFlag, Num, PowerNum, Stadata_T[1] + Stadata_T[3], 0, 3);
         //---------------------------------新版无故障显示------------------------------------
-        NoFault_Display();// 无状态、无故障
+        NoFault_Display(); // 无状态、无故障
     }
-    if (Read_WordManage(PowerSta, 3) && Read_WordManage(PowerSta, 4) && !Read_WordManage(PowerSta, 2) && !Read_WordManage(PowerSta, 5) && 
-    !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) && 
-    !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
+    if (Read_WordManage(PowerSta, 3) && Read_WordManage(PowerSta, 4) && !Read_WordManage(PowerSta, 2) && !Read_WordManage(PowerSta, 5) &&
+        !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) &&
+        !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
     {
         /*DC、USB显示*/
         MarBrControl_1(Electric, TriggerFlickFlag, Num, PowerNum, Stadata_T[2], Numdata_T[3], 8);
-       //---------------------------------新版无故障显示------------------------------------
-       NoFault_Display();// 无状态、无故障
+        //---------------------------------新版无故障显示------------------------------------
+        NoFault_Display(); // 无状态、无故障
     }
-    if (Read_WordManage(PowerSta, 3) && Read_WordManage(PowerSta, 5) && !Read_WordManage(PowerSta, 2) && !Read_WordManage(PowerSta, 4) && 
-    !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) && 
-    !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
+    if (Read_WordManage(PowerSta, 3) && Read_WordManage(PowerSta, 5) && !Read_WordManage(PowerSta, 2) && !Read_WordManage(PowerSta, 4) &&
+        !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) &&
+        !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
     {
         /*DC、AC显示*/
         MarBrControl_1(Electric, TriggerFlickFlag, Num, PowerNum, Stadata_T[2] + Stadata_T[3], 0, 3);
         //---------------------------------新版无故障显示------------------------------------
-        NoFault_Display();// 无状态、无故障
+        NoFault_Display(); // 无状态、无故障
     }
-    if (Read_WordManage(PowerSta, 4) && Read_WordManage(PowerSta, 5) && !Read_WordManage(PowerSta, 2) && !Read_WordManage(PowerSta, 3) && 
-    !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) && 
-    !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
+    if (Read_WordManage(PowerSta, 4) && Read_WordManage(PowerSta, 5) && !Read_WordManage(PowerSta, 2) && !Read_WordManage(PowerSta, 3) &&
+        !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) &&
+        !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
     {
         /*USB、AC显示*/
         MarBrControl_1(Electric, TriggerFlickFlag, Num, PowerNum, Stadata_T[3], Numdata_T[3], 8);
         //---------------------------------新版无故障显示------------------------------------
-        NoFault_Display();// 无状态、无故障
+        NoFault_Display(); // 无状态、无故障
     }
-    if (Read_WordManage(PowerSta, 2) && Read_WordManage(PowerSta, 3) && Read_WordManage(PowerSta, 4) && !Read_WordManage(PowerSta, 5) && 
-    !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) && 
-    !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
+    if (Read_WordManage(PowerSta, 2) && Read_WordManage(PowerSta, 3) && Read_WordManage(PowerSta, 4) && !Read_WordManage(PowerSta, 5) &&
+        !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) &&
+        !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
     {
         /*PV、DC、USB*/
         MarBrControl_1(Electric, TriggerFlickFlag, Num, PowerNum, Stadata_T[1] + Stadata_T[2], Numdata_T[3], 8);
         //---------------------------------新版无故障显示------------------------------------
-        NoFault_Display();// 无状态、无故障
+        NoFault_Display(); // 无状态、无故障
     }
-    if (Read_WordManage(PowerSta, 2) && Read_WordManage(PowerSta, 3) && !Read_WordManage(PowerSta, 4) && Read_WordManage(PowerSta, 5) && 
-    !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) && 
-    !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
+    if (Read_WordManage(PowerSta, 2) && Read_WordManage(PowerSta, 3) && !Read_WordManage(PowerSta, 4) && Read_WordManage(PowerSta, 5) &&
+        !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) &&
+        !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
     {
         /*PV、DC、AC*/
         MarBrControl_1(Electric, TriggerFlickFlag, Num, PowerNum, Stadata_T[1] + Stadata_T[2] + Stadata_T[3], 0, 3);
         //---------------------------------新版无故障显示------------------------------------
-        NoFault_Display();// 无状态、无故障
+        NoFault_Display(); // 无状态、无故障
     }
-    if (Read_WordManage(PowerSta, 2) && !Read_WordManage(PowerSta, 3) && Read_WordManage(PowerSta, 4) && Read_WordManage(PowerSta, 5) && 
-    !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) && 
-    !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
+    if (Read_WordManage(PowerSta, 2) && !Read_WordManage(PowerSta, 3) && Read_WordManage(PowerSta, 4) && Read_WordManage(PowerSta, 5) &&
+        !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) &&
+        !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
     {
         /*PV、USB、AC*/
         MarBrControl_1(Electric, TriggerFlickFlag, Num, PowerNum, Stadata_T[1] + Stadata_T[3], Numdata_T[3], 8);
         //---------------------------------新版无故障显示------------------------------------
-        NoFault_Display();// 无状态、无故障
+        NoFault_Display(); // 无状态、无故障
     }
-    if (!Read_WordManage(PowerSta, 2) && Read_WordManage(PowerSta, 3) && Read_WordManage(PowerSta, 4) && Read_WordManage(PowerSta, 5) && 
-    !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) && 
-    !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
+    if (!Read_WordManage(PowerSta, 2) && Read_WordManage(PowerSta, 3) && Read_WordManage(PowerSta, 4) && Read_WordManage(PowerSta, 5) &&
+        !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) &&
+        !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
     {
         /*DC、USB、AC*/
         MarBrControl_1(Electric, TriggerFlickFlag, Num, PowerNum, Stadata_T[2] + Stadata_T[3], Numdata_T[3], 8);
         //---------------------------------新版无故障显示------------------------------------
-        NoFault_Display();// 无状态、无故障
+        NoFault_Display(); // 无状态、无故障
     }
-    if (Read_WordManage(PowerSta, 2) && Read_WordManage(PowerSta, 3) && Read_WordManage(PowerSta, 4) && Read_WordManage(PowerSta, 5) && 
-    !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) && 
-    !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
+    if (Read_WordManage(PowerSta, 2) && Read_WordManage(PowerSta, 3) && Read_WordManage(PowerSta, 4) && Read_WordManage(PowerSta, 5) &&
+        !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) &&
+        !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
     {
         /* PV、DC、USB、AC */
         MarBrControl_1(Electric, TriggerFlickFlag, Num, PowerNum, Stadata_T[1] + Stadata_T[2] + Stadata_T[3], Numdata_T[3], 8);
         //---------------------------------新版无故障显示------------------------------------
-        NoFault_Display();// 无状态、无故障
+        NoFault_Display(); // 无状态、无故障
     }
     /*----------------------------------Error码显示----------------------------------------------------*/
     /*电池故障显示*/
@@ -1554,17 +1580,37 @@ void DisSta_Conrtol_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSat
         //-------------------------------------新版故障显示------------------------------------
         if (Read_WordManage(ErrorSat, 0))
         {
-            Error_Code_Display(55); // 欠压故障码
+            if (FaultFlickerFlag)
+            {
+                Error_Code_Display(55); // 欠压故障码
+            }
+            else
+            {
+                NoFault_Display(); // 无状态、无故障
+            }
         }
         else if (Read_WordManage(ErrorSat, 1))
         {
-            Error_Code_Display(56);  // 过压故障码
+            if (FaultFlickerFlag)
+            {
+                Error_Code_Display(56); // 过压故障码
+            }
+            else
+            {
+                NoFault_Display(); // 无状态、无故障
+            }  
         }
         else if (Read_WordManage(ErrorSat, 2))
         {
-            Error_Code_Display(57); // 过流故障码
+            if (FaultFlickerFlag)
+            {
+                Error_Code_Display(57); // 过流故障码
+            }
+            else
+            {
+                NoFault_Display(); // 无状态、无故障
+            }  
         }
-        
     }
     /*PV过载显示*/
     if (Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
@@ -1583,7 +1629,14 @@ void DisSta_Conrtol_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSat
             MarBrControl_1(Electric, FALSE, Num, PowerNum, Stadata_T[0] + Stadata_T[1], 0, 3);
         }
         //---------------------------------新版故障显示------------------------------------
-        Error_Code_Display(40); // PV过载
+        if (FaultFlickerFlag)
+        {
+            Error_Code_Display(40); // PV过载
+        }
+        else
+        {
+            NoFault_Display(); // 无状态、无故障
+        }
     }
     /*DC过载显示*/
     if (Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
@@ -1602,7 +1655,14 @@ void DisSta_Conrtol_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSat
             MarBrControl_1(Electric, FALSE, Num, PowerNum, Stadata_T[0] + Stadata_T[2], 0, 3);
         }
         //---------------------------------新版故障显示------------------------------------
-        Error_Code_Display(41); // DC过载
+        if (FaultFlickerFlag)
+        {
+            Error_Code_Display(41); // DC过载
+        }
+        else
+        {
+            NoFault_Display(); // 无状态、无故障
+        }
     }
     /*USB过载显示*/
     if (Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 6) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
@@ -1621,7 +1681,14 @@ void DisSta_Conrtol_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSat
             MarBrControl_1(Electric, FALSE, Num, PowerNum, Stadata_T[0], Numdata_T[3], 8);
         }
         //---------------------------------新版故障显示------------------------------------
-        Error_Code_Display(42); // USB过载
+        if (FaultFlickerFlag)
+        {
+            Error_Code_Display(42); // USB过载
+        }
+        else
+        {
+            NoFault_Display(); // 无状态、无故障
+        }
     }
     /*AC过载显示*/
     if (Read_WordManage(ErrorSat, 6) && !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
@@ -1640,7 +1707,14 @@ void DisSta_Conrtol_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSat
             MarBrControl_1(Electric, FALSE, Num, PowerNum, Stadata_T[0] + Stadata_T[3], 0, 3);
         }
         //---------------------------------新版故障显示------------------------------------
-        Error_Code_Display(43); // AC过载
+        if (FaultFlickerFlag)
+        {
+            Error_Code_Display(43); // AC过载
+        }
+        else
+        {
+            NoFault_Display(); // 无状态、无故障
+        }
     }
     /*PV、DC过载显示*/
     if (Read_WordManage(ErrorSat, 3) && Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
@@ -1659,7 +1733,14 @@ void DisSta_Conrtol_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSat
             MarBrControl_1(Electric, FALSE, Num, PowerNum, Stadata_T[0] + Stadata_T[1] + Stadata_T[2], 0, 3);
         }
         //---------------------------------新版故障显示------------------------------------
-        Error_Code_Display(44); // PV、DC过载
+        if (FaultFlickerFlag)
+        {
+            Error_Code_Display(44); // PV、DC过载
+        }
+        else
+        {
+            NoFault_Display(); // 无状态、无故障
+        }
     }
     /*PV、USB过载显示*/
     if (Read_WordManage(ErrorSat, 3) && Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 6) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
@@ -1678,7 +1759,14 @@ void DisSta_Conrtol_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSat
             MarBrControl_1(Electric, FALSE, Num, PowerNum, Stadata_T[0] + Stadata_T[1], Numdata_T[3], 8);
         }
         //---------------------------------新版故障显示------------------------------------
-        Error_Code_Display(45); // PV、USB过载
+        if (FaultFlickerFlag)
+        {
+            Error_Code_Display(45); // PV、USB过载
+        }
+        else
+        {
+            NoFault_Display(); // 无状态、无故障
+        }
     }
     /*PV、AC过载显示*/
     if (Read_WordManage(ErrorSat, 3) && Read_WordManage(ErrorSat, 6) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
@@ -1697,7 +1785,14 @@ void DisSta_Conrtol_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSat
             MarBrControl_1(Electric, FALSE, Num, PowerNum, Stadata_T[0] + Stadata_T[1] + Stadata_T[3], 0, 3);
         }
         //---------------------------------新版故障显示------------------------------------
-        Error_Code_Display(46); // PV、AC过载
+        if (FaultFlickerFlag)
+        {
+            Error_Code_Display(46); // PV、AC过载
+        }
+        else
+        {
+            NoFault_Display(); // 无状态、无故障
+        }
     }
     /*USB、DC过载显示*/
     if (Read_WordManage(ErrorSat, 4) && Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 6) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
@@ -1716,7 +1811,14 @@ void DisSta_Conrtol_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSat
             MarBrControl_1(Electric, FALSE, Num, PowerNum, Stadata_T[0] + Stadata_T[2], Numdata_T[3], 8);
         }
         //---------------------------------新版故障显示------------------------------------
-        Error_Code_Display(47); // USB、DC过载
+        if (FaultFlickerFlag)
+        {
+            Error_Code_Display(47); // USB、DC过载
+        }
+        else
+        {
+            NoFault_Display(); // 无状态、无故障
+        }
     }
     /*USB、AC过载显示*/
     if (Read_WordManage(ErrorSat, 5) && Read_WordManage(ErrorSat, 6) && !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
@@ -1735,7 +1837,14 @@ void DisSta_Conrtol_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSat
             MarBrControl_1(Electric, FALSE, Num, PowerNum, Stadata_T[0] + Stadata_T[3], Numdata_T[3], 8);
         }
         //---------------------------------新版故障显示------------------------------------
-        Error_Code_Display(48); // USB、AC过载
+        if (FaultFlickerFlag)
+        {
+            Error_Code_Display(48); // USB、AC过载
+        }
+        else
+        {
+            NoFault_Display(); // 无状态、无故障
+        }
     }
     /*DC、AC过载显示*/
     if (Read_WordManage(ErrorSat, 4) && Read_WordManage(ErrorSat, 6) && !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
@@ -1754,7 +1863,14 @@ void DisSta_Conrtol_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSat
             MarBrControl_1(Electric, FALSE, Num, PowerNum, Stadata_T[0] + Stadata_T[2] + Stadata_T[3], 0, 3);
         }
         //---------------------------------新版故障显示------------------------------------
-        Error_Code_Display(49); // DC、AC过载
+        if (FaultFlickerFlag)
+        {
+            Error_Code_Display(49); // DC、AC过载
+        }
+        else
+        {
+            NoFault_Display(); // 无状态、无故障
+        }
     }
     /*PV、DC、AC过载显示*/
     if (Read_WordManage(ErrorSat, 3) && Read_WordManage(ErrorSat, 4) && Read_WordManage(ErrorSat, 6) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
@@ -1773,7 +1889,14 @@ void DisSta_Conrtol_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSat
             MarBrControl_1(Electric, FALSE, Num, PowerNum, Stadata_T[0] + Stadata_T[1] + Stadata_T[2] + Stadata_T[3], 0, 3);
         }
         //---------------------------------新版故障显示------------------------------------
-        Error_Code_Display(50); // PV、DC、AC过载
+        if (FaultFlickerFlag)
+        {
+            Error_Code_Display(50); // PV、DC、AC过载
+        }
+        else
+        {
+            NoFault_Display(); // 无状态、无故障
+        }
     }
     /*PV、DC、USB过载显示*/
     if (Read_WordManage(ErrorSat, 3) && Read_WordManage(ErrorSat, 4) && Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
@@ -1792,7 +1915,14 @@ void DisSta_Conrtol_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSat
             MarBrControl_1(Electric, FALSE, Num, PowerNum, Stadata_T[0] + Stadata_T[1] + Stadata_T[2], Numdata_T[3], 8);
         }
         //---------------------------------新版故障显示------------------------------------
-        Error_Code_Display(51); // PV、DC、USB过载
+        if (FaultFlickerFlag)
+        {
+            Error_Code_Display(51); // PV、DC、USB过载
+        }
+        else
+        {
+            NoFault_Display(); // 无状态、无故障
+        }
     }
     /*PV、AC、USB过载显示*/
     if (Read_WordManage(ErrorSat, 3) && Read_WordManage(ErrorSat, 5) && Read_WordManage(ErrorSat, 6) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
@@ -1811,7 +1941,14 @@ void DisSta_Conrtol_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSat
             MarBrControl_1(Electric, FALSE, Num, PowerNum, Stadata_T[0] + Stadata_T[1] + Stadata_T[3], Numdata_T[3], 8);
         }
         //---------------------------------新版故障显示------------------------------------
-        Error_Code_Display(52); // PV、AC、USB过载
+        if (FaultFlickerFlag)
+        {
+            Error_Code_Display(52); // PV、AC、USB过载
+        }
+        else
+        {
+            NoFault_Display(); // 无状态、无故障
+        }
     }
     /*DC、AC、USB过载显示*/
     if (Read_WordManage(ErrorSat, 4) && Read_WordManage(ErrorSat, 5) && Read_WordManage(ErrorSat, 6) && !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
@@ -1830,7 +1967,14 @@ void DisSta_Conrtol_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSat
             MarBrControl_1(Electric, FALSE, Num, PowerNum, Stadata_T[0] + Stadata_T[2] + Stadata_T[3], Numdata_T[3], 8);
         }
         //---------------------------------新版故障显示------------------------------------
-        Error_Code_Display(53); // DC、AC、USB过载
+        if (FaultFlickerFlag)
+        {
+            Error_Code_Display(53); // DC、AC、USB过载
+        }
+        else
+        {
+            NoFault_Display(); // 无状态、无故障
+        }
     }
     /*PV、DC、USB、AC过载显示*/
     if (Read_WordManage(ErrorSat, 3) && Read_WordManage(ErrorSat, 4) && Read_WordManage(ErrorSat, 5) && Read_WordManage(ErrorSat, 6) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
@@ -1849,7 +1993,14 @@ void DisSta_Conrtol_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSat
             MarBrControl_1(Electric, FALSE, Num, PowerNum, Stadata_T[0] + Stadata_T[1] + Stadata_T[2] + Stadata_T[3], Numdata_T[3], 8);
         }
         //---------------------------------新版故障显示------------------------------------
-        Error_Code_Display(54); // PV、DC、USB、AC过载
+        if (FaultFlickerFlag)
+        {
+            Error_Code_Display(54); // PV、DC、USB、AC过载
+        }
+        else
+        {
+            NoFault_Display(); // 无状态、无故障
+        }
     }
     /*电池过温显示*/
     if (Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
@@ -1868,7 +2019,14 @@ void DisSta_Conrtol_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSat
             MarBrControl_1(Electric, FALSE, Num, PowerNum, Numdata_T[0], 0, 1);
         }
         //---------------------------------新版故障显示------------------------------------
-        Error_Code_Display(58); // 电池过温
+        if (FaultFlickerFlag)
+        {
+            Error_Code_Display(58); // 电池过温
+        }
+        else
+        {
+            NoFault_Display(); // 无状态、无故障
+        }
     }
     /*电池故障、电池过温显示*/
     if (Read_WordManage(ErrorSat, 7) && (Read_WordManage(ErrorSat, 0) || Read_WordManage(ErrorSat, 1) || Read_WordManage(ErrorSat, 2)))
@@ -1885,13 +2043,10 @@ void DisSta_Conrtol_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSat
         else
         {
             MarBrControl_1(Electric, FALSE, Num, PowerNum, Numdata_T[0] + Numdata_T[1], 0, 1);
-        } 
-
+        }
     }
 
-    if (!Read_WordManage(PowerSta, 2) && !Read_WordManage(PowerSta, 3) && !Read_WordManage(PowerSta, 4) && !Read_WordManage(PowerSta, 5) 
-    && !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) 
-    && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
+    if (!Read_WordManage(PowerSta, 2) && !Read_WordManage(PowerSta, 3) && !Read_WordManage(PowerSta, 4) && !Read_WordManage(PowerSta, 5) && !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 4) && !Read_WordManage(ErrorSat, 5) && !Read_WordManage(ErrorSat, 6) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2))
     {
         /* 无状态、无故障状态 */
         if (SteadySta)
@@ -1903,7 +2058,7 @@ void DisSta_Conrtol_1(unsigned long Electric, uint8_t PowerSta, uint8_t ErrorSat
             MarBrControl_1(Electric, TriggerFlickFlag, Num, PowerNum, 0, 0, 0);
         }
         //---------------------------------新版无故障显示------------------------------------
-        NoFault_Display();// 无状态、无故障
+        NoFault_Display(); // 无状态、无故障
     }
 }
 
@@ -2975,7 +3130,7 @@ void Circulation_ErrorFlickerMode_2(uint8_t Num, uint8_t Mode)
     }
     else
     {
-        //故障闪烁
+        // 故障闪烁
         if (Mode == 1)
         {
             if (ErrorFlickerFlag)
@@ -3322,7 +3477,6 @@ void MarBrControl_2(unsigned long Electric, uint8_t FickerSta, uint8_t Num, uint
         else
         {
             HT1621_WriteData8Bit(Ero_TR, MarBright[0] - MarConLamp[Num]); // 对应R30-26灯亮
-           
         }
     }
     else
@@ -3693,107 +3847,160 @@ void Circulation_Marquee_3(uint8_t Indata, uint16_t ErrorSat, unsigned long Inpu
         mode = 0;
     }
     /*---------------------------------------------新版充电时Error数字码显示--------------------------------------------------------*/
-    if (Read_WordManage(Use_ReportSta, 0))
+    if ((FaultNum_L + FaultNum_H) > TRUE)
     {
-        /* 单体高压保护 */
-        Error_Code_Display(12); 
+        FaultDiaTimeFlag = TRUE;
+        // 多个故障触发
+        if (Read_WordManage(Use_ReportSta, 4) && FaultCount == 1)
+        {
+            /* 充电过流保护 */
+            Error_Code_Display(31);
+        }
+        else if (Read_WordManage(Use_ReportSta, 6) && FaultCount == 2)
+        {
+            /* 充电过温保护 */
+            Error_Code_Display(81);
+        }
+        else if (Read_WordManage(Use_ReportSta, 8) && FaultCount == 3)
+        {
+            /* 充电低温保护 */
+            Error_Code_Display(71);
+        }
+        else if (Read_WordManage(Use_ReportSta, 10) && FaultCount == 4)
+        {
+            /* 环境高温保护 */
+            Error_Code_Display(83);
+        }
+        else if (Read_WordManage(Use_ReportSta, 11) && FaultCount == 5)
+        {
+            /* 环境低温保护 */
+            Error_Code_Display(73);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 1) && FaultCount == 6)
+        {
+            /* 正极绝缘故障保护 */
+            Error_Code_Display(1);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 2) && FaultCount == 7)
+        {
+            /* 负极绝缘故障保护 */
+            Error_Code_Display(2);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 3) && FaultCount == 8)
+        {
+            /* 充电压差保护 */
+            Error_Code_Display(13);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 5) && FaultCount == 9)
+        {
+            /* 充电温差保护 */
+            Error_Code_Display(84);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 7) && FaultCount == 10)
+        {
+            /* 电芯温差保护 */
+            Error_Code_Display(87);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 8) && FaultCount == 11)
+        {
+            /* 电芯采样保护 */
+            Error_Code_Display(3);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 9) && FaultCount == 12)
+        {
+            /* NTC采样保护 */
+            Error_Code_Display(4);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 10) && FaultCount == 13)
+        {
+            /* 端子高温保护 */
+            Error_Code_Display(86);
+        }
+        else
+        {
+            //---------------------------------新版无故障显示------------------------------------
+            NoFault_Display(); // 无状态、无故障
+        }
     }
-    else if (Read_WordManage(Use_ReportSta, 1))
+    else if ((FaultNum_L + FaultNum_H) == TRUE)
     {
-        /* 单体低压保护 */
-        Error_Code_Display(22);
-    }
-    else if (Read_WordManage(Use_ReportSta, 2))
-    {
-        /* 总体高压保护 */
-        Error_Code_Display(11);
-    }
-    else if (Read_WordManage(Use_ReportSta, 3))
-    {
-        /* 单体高压保护 */
-        Error_Code_Display(12);
-    }
-    else if (Read_WordManage(Use_ReportSta, 4))
-    {
-        /* 充电过流保护 */
-        Error_Code_Display(31);
-    }
-    else if (Read_WordManage(Use_ReportSta, 6))
-    {
-        /* 充电过温保护 */
-        Error_Code_Display(81);
-    }
-    else if (Read_WordManage(Use_ReportSta, 8))
-    {
-        /* 充电低温保护 */
-        Error_Code_Display(71);
-    }
-    else if (Read_WordManage(Use_ReportSta, 10))
-    {
-        /* 环境高温保护 */
-        Error_Code_Display(83);
-    }
-    else if (Read_WordManage(Use_ReportSta, 11))
-    {
-        /* 环境低温保护 */
-        Error_Code_Display(73);
-    }
-    else if (Read_WordManage(Use_ReportSta, 15))
-    {
-        /* SOC高保护 */
-        Error_Code_Display(6);
-    }
-    else if (Read_WordManage(Use_ReportSta_H, 0))
-    {
-        /* SOC低保护 */
-        Error_Code_Display(7);
-    }
-    else if (Read_WordManage(Use_ReportSta_H, 1))
-    {
-        /* 正极绝缘故障保护 */
-        Error_Code_Display(1);
-    }
-    else if (Read_WordManage(Use_ReportSta_H, 2))
-    {
-        /* 负极绝缘故障保护 */
-        Error_Code_Display(2);
-    }
-    else if (Read_WordManage(Use_ReportSta_H, 3))
-    {
-        /* 充电压差保护 */
-        Error_Code_Display(13);
-    }
-    else if (Read_WordManage(Use_ReportSta_H, 5))
-    {
-        /* 充电温差保护 */
-        Error_Code_Display(84);
-    }
-    else if (Read_WordManage(Use_ReportSta_H, 7))
-    {
-        /* 电芯温差保护 */
-        Error_Code_Display(87);
-    }
-    else if (Read_WordManage(Use_ReportSta_H, 8))
-    {
-        /* 电芯采样保护 */
-        Error_Code_Display(3);
-    }
-    else if (Read_WordManage(Use_ReportSta_H, 9))
-    {
-        /* NTC采样保护 */
-        Error_Code_Display(4);
-    }
-    else if (Read_WordManage(Use_ReportSta_H, 10))
-    {
-        /* 端子高温保护 */
-        Error_Code_Display(86);
+        // 单个故障触发
+        if (Read_WordManage(Use_ReportSta, 5) && FaultFlickerFlag)
+        {
+            /* 放电过流保护 */
+            Error_Code_Display(32);
+        }
+        else if (Read_WordManage(Use_ReportSta, 7) && FaultFlickerFlag)
+        {
+            /* 放电过温保护 */
+            Error_Code_Display(82);
+        }
+        else if (Read_WordManage(Use_ReportSta, 9) && FaultFlickerFlag)
+        {
+            /* 放电低温保护 */
+            Error_Code_Display(72);
+        }
+        else if (Read_WordManage(Use_ReportSta, 10) && FaultFlickerFlag)
+        {
+            /* 环境高温保护 */
+            Error_Code_Display(83);
+        }
+        else if (Read_WordManage(Use_ReportSta, 11) && FaultFlickerFlag)
+        {
+            /* 环境低温保护 */
+            Error_Code_Display(73);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 1) && FaultFlickerFlag)
+        {
+            /* 正极绝缘故障保护 */
+            Error_Code_Display(1);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 2) && FaultFlickerFlag)
+        {
+            /* 负极绝缘故障保护 */
+            Error_Code_Display(2);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 4) && FaultFlickerFlag)
+        {
+            /* 放电压差保护 */
+            Error_Code_Display(23);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 6) && FaultFlickerFlag)
+        {
+            /* 放电温差保护 */
+            Error_Code_Display(85);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 7) && FaultFlickerFlag)
+        {
+            /* 电芯温差保护 */
+            Error_Code_Display(87);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 8) && FaultFlickerFlag)
+        {
+            /* 电芯采样保护 */
+            Error_Code_Display(3);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 9) && FaultFlickerFlag)
+        {
+            /* NTC采样保护 */
+            Error_Code_Display(4);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 10) && FaultFlickerFlag)
+        {
+            /* 端子高温保护 */
+            Error_Code_Display(86);
+        }
+        else
+        {
+            NoFault_Display(); // 无状态、无故障
+        }
+        FaultDiaTimeFlag = FALSE;
     }
     else
     {
-        //---------------------------------新版无故障显示------------------------------------
-        NoFault_Display();// 无状态、无故障
+        FaultDiaTimeFlag = FALSE;
+        NoFault_Display(); // 无状态、无故障
     }
-    
     /*----------------------------------------------跑马灯--------------------------------------------*/
     if (Indata == 1)
     {
@@ -4118,9 +4325,10 @@ void DisSta_Conrtol_3(unsigned long Electric, uint16_t ErrorSat, uint8_t Num, ui
     }
     /*----------------------------------旧版Error码+跑马灯显示----------------------------------------------------*/
     /*电池故障显示*/
-    if ((Read_WordManage(ErrorSat, 0) || Read_WordManage(ErrorSat, 1) || Read_WordManage(ErrorSat, 2) || Read_WordManage(ErrorSat, 3) || 
-    Read_WordManage(ErrorSat, 5)) && !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 9) && !Read_WordManage(ErrorSat, 10) && 
-    !Read_WordManage(ErrorSat, 11) && !Read_WordManage(ErrorSat, 13))
+    if ((Read_WordManage(ErrorSat, 0) || Read_WordManage(ErrorSat, 1) || Read_WordManage(ErrorSat, 2) || Read_WordManage(ErrorSat, 3) ||
+         Read_WordManage(ErrorSat, 5)) &&
+        !Read_WordManage(ErrorSat, 7) && !Read_WordManage(ErrorSat, 9) && !Read_WordManage(ErrorSat, 10) &&
+        !Read_WordManage(ErrorSat, 11) && !Read_WordManage(ErrorSat, 13))
     {
         if (ErrorFlickerFlag && !SteadySta)
         {
@@ -4137,9 +4345,10 @@ void DisSta_Conrtol_3(unsigned long Electric, uint16_t ErrorSat, uint8_t Num, ui
         }
     }
     /*电池过温显示*/
-    if ((Read_WordManage(ErrorSat, 7) || Read_WordManage(ErrorSat, 9) || Read_WordManage(ErrorSat, 10) || Read_WordManage(ErrorSat, 11) || 
-    Read_WordManage(ErrorSat, 13)) && !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2) && 
-    !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 5))
+    if ((Read_WordManage(ErrorSat, 7) || Read_WordManage(ErrorSat, 9) || Read_WordManage(ErrorSat, 10) || Read_WordManage(ErrorSat, 11) ||
+         Read_WordManage(ErrorSat, 13)) &&
+        !Read_WordManage(ErrorSat, 0) && !Read_WordManage(ErrorSat, 1) && !Read_WordManage(ErrorSat, 2) &&
+        !Read_WordManage(ErrorSat, 3) && !Read_WordManage(ErrorSat, 5))
     {
         if (ErrorFlickerFlag && !SteadySta)
         {
@@ -4187,120 +4396,161 @@ void DisSta_Conrtol_3(unsigned long Electric, uint16_t ErrorSat, uint8_t Num, ui
         }
     }
     /*---------------------------------------------新版放电时Error数字码显示--------------------------------------------------------*/
-    if (Read_WordManage(Use_ReportSta, 0))
+    if ((FaultNum_L + FaultNum_H) > TRUE)
     {
-        /* 单体高压保护 */
-        Error_Code_Display(12);
+        FaultDiaTimeFlag = TRUE;
+        // 多个故障触发
+        if (Read_WordManage(Use_ReportSta, 5) && FaultCount == 1)
+        {
+            /* 放电过流保护 */
+            Error_Code_Display(32);
+        }
+        else if (Read_WordManage(Use_ReportSta, 7) && FaultCount == 2)
+        {
+            /* 放电过温保护 */
+            Error_Code_Display(82);
+        }
+        else if (Read_WordManage(Use_ReportSta, 9) && FaultCount == 3)
+        {
+            /* 放电低温保护 */
+            Error_Code_Display(72);
+        }
+        else if (Read_WordManage(Use_ReportSta, 10) && FaultCount == 4)
+        {
+            /* 环境高温保护 */
+            Error_Code_Display(83);
+        }
+        else if (Read_WordManage(Use_ReportSta, 11) && FaultCount == 5)
+        {
+            /* 环境低温保护 */
+            Error_Code_Display(73);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 1) && FaultCount == 6)
+        {
+            /* 正极绝缘故障保护 */
+            Error_Code_Display(1);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 2) && FaultCount == 7)
+        {
+            /* 负极绝缘故障保护 */
+            Error_Code_Display(2);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 4) && FaultCount == 8)
+        {
+            /* 放电压差保护 */
+            Error_Code_Display(23);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 6) && FaultCount == 9)
+        {
+            /* 放电温差保护 */
+            Error_Code_Display(85);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 7) && FaultCount == 10)
+        {
+            /* 电芯温差保护 */
+            Error_Code_Display(87);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 8) && FaultCount == 11)
+        {
+            /* 电芯采样保护 */
+            Error_Code_Display(3);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 9) && FaultCount == 12)
+        {
+            /* NTC采样保护 */
+            Error_Code_Display(4);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 10) && FaultCount == 13)
+        {
+            /* 端子高温保护 */
+            Error_Code_Display(86);
+        }
+        else
+        {
+            //---------------------------------新版无故障显示------------------------------------
+            NoFault_Display(); // 无状态、无故障
+        }
     }
-    else if (Read_WordManage(Use_ReportSta, 1))
+    else if ((FaultNum_L + FaultNum_H) == TRUE)
     {
-        /* 单体低压保护 */
-        Error_Code_Display(22);
-    }
-    else if (Read_WordManage(Use_ReportSta, 2))
-    {
-        /* 总体高压保护 */
-        Error_Code_Display(11);
-    }
-    else if (Read_WordManage(Use_ReportSta, 3))
-    {
-        /* 单体高压保护 */
-        Error_Code_Display(12);
-    }
-    else if (Read_WordManage(Use_ReportSta, 5))
-    {
-        /* 放电过流保护 */
-        Error_Code_Display(32);
-    }
-    else if (Read_WordManage(Use_ReportSta, 7))
-    {
-        /* 放电过温保护 */
-        Error_Code_Display(82);
-    }
-    else if (Read_WordManage(Use_ReportSta, 9))
-    {
-        /* 放电低温保护 */
-        Error_Code_Display(72);
-    }
-    else if (Read_WordManage(Use_ReportSta, 10))
-    {
-        /* 环境高温保护 */
-        Error_Code_Display(83);
-    }
-    else if (Read_WordManage(Use_ReportSta, 11))
-    {
-        /* 环境低温保护 */
-        Error_Code_Display(73);
-    }
-    else if (Read_WordManage(Use_ReportSta, 15))
-    {
-        /* SOC高保护 */
-        Error_Code_Display(6);
-    }
-    else if (Read_WordManage(Use_ReportSta_H, 0))
-    {
-        /* SOC低保护 */
-        Error_Code_Display(7);
-    }
-    else if (Read_WordManage(Use_ReportSta_H, 1))
-    {
-        /* 正极绝缘故障保护 */
-        Error_Code_Display(1);
-    }
-    else if (Read_WordManage(Use_ReportSta_H, 2))
-    {
-        /* 负极绝缘故障保护 */
-        Error_Code_Display(2);
-    }
-    else if (Read_WordManage(Use_ReportSta_H, 4))
-    {
-        /* 放电压差保护 */
-        Error_Code_Display(23);
-    }
-    else if (Read_WordManage(Use_ReportSta_H, 6))
-    {
-        /* 放电温差保护 */
-        Error_Code_Display(85);
-    }
-    else if (Read_WordManage(Use_ReportSta_H, 7))
-    {
-        /* 电芯温差保护 */
-        Error_Code_Display(87);
-    }
-    else if (Read_WordManage(Use_ReportSta_H, 8))
-    {
-        /* 电芯采样保护 */
-        Error_Code_Display(3);
-    }
-    else if (Read_WordManage(Use_ReportSta_H, 9))
-    {
-        /* NTC采样保护 */
-        Error_Code_Display(4);
-    }
-    else if (Read_WordManage(Use_ReportSta_H, 10))
-    {
-        /* 端子高温保护 */
-        Error_Code_Display(86);
+        // 单个故障触发
+        if (Read_WordManage(Use_ReportSta, 5) && FaultFlickerFlag)
+        {
+            /* 放电过流保护 */
+            Error_Code_Display(32);
+        }
+        else if (Read_WordManage(Use_ReportSta, 7) && FaultFlickerFlag)
+        {
+            /* 放电过温保护 */
+            Error_Code_Display(82);
+        }
+        else if (Read_WordManage(Use_ReportSta, 9) && FaultFlickerFlag)
+        {
+            /* 放电低温保护 */
+            Error_Code_Display(72);
+        }
+        else if (Read_WordManage(Use_ReportSta, 10) && FaultFlickerFlag)
+        {
+            /* 环境高温保护 */
+            Error_Code_Display(83);
+        }
+        else if (Read_WordManage(Use_ReportSta, 11) && FaultFlickerFlag)
+        {
+            /* 环境低温保护 */
+            Error_Code_Display(73);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 1) && FaultFlickerFlag)
+        {
+            /* 正极绝缘故障保护 */
+            Error_Code_Display(1);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 2) && FaultFlickerFlag)
+        {
+            /* 负极绝缘故障保护 */
+            Error_Code_Display(2);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 4) && FaultFlickerFlag)
+        {
+            /* 放电压差保护 */
+            Error_Code_Display(23);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 6) && FaultFlickerFlag)
+        {
+            /* 放电温差保护 */
+            Error_Code_Display(85);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 7) && FaultFlickerFlag)
+        {
+            /* 电芯温差保护 */
+            Error_Code_Display(87);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 8) && FaultFlickerFlag)
+        {
+            /* 电芯采样保护 */
+            Error_Code_Display(3);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 9) && FaultFlickerFlag)
+        {
+            /* NTC采样保护 */
+            Error_Code_Display(4);
+        }
+        else if (Read_WordManage(Use_ReportSta_H, 10) && FaultFlickerFlag)
+        {
+            /* 端子高温保护 */
+            Error_Code_Display(86);
+        }
+        else
+        {
+            NoFault_Display(); // 无状态、无故障
+        }
+        FaultDiaTimeFlag = FALSE;
     }
     else
     {
-        //---------------------------------新版无故障显示------------------------------------
-        NoFault_Display();// 无状态、无故障
+        FaultDiaTimeFlag = FALSE;
+        NoFault_Display(); // 无状态、无故障
     }
 }
 
-//协议1调试指令
-//45 47 10 01 63 27 0F 27 0F 38 00 00 00 00 00 00 
-
-
-
-
-
-
-
-
-
-
-
-
-
+// 协议1调试指令
+// 45 47 10 01 63 27 0F 27 0F 38 00 00 00 00 00 00
